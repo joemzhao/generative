@@ -1,2 +1,1 @@
-# QA
-2nd project at EPFL.
+miscs of experiments of gan project
