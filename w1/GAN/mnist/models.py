@@ -17,31 +17,30 @@ import sys, glob
 import pytest
 
 def G(inputdim=100, xdim=4, ydim=4):
-    model=Sequential()
-    model.add(Dense(input_dim=inputdim, output_dim=1024 * xdim * ydim))
-    model.add(BatchNormalization())
-    model.add(Activation("relu"))
-    model.add(Reshape((1024, xdim, ydim), input_shape=(inputdim,)))
+    model = Sequential()
+    model.add(Dense(input_dim=inputdim, output_dim=1024*xdim*ydim))
+    # model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(Reshape( (1024, xdim, ydim), input_shape=(inputdim,) ) )
 
     model.add(UpSampling2D(size=(2, 2)))
-    model.add(Convolution2D(256, 5, 5, border_model="same"))
-    model.add(BatchNormalization())
-    model.add(Activation("relu"))
+    model.add(Convolution2D(512, 5, 5, border_mode='same'))
+    # model.add(BatchNormalization())
+    model.add(Activation('relu'))
 
     model.add(UpSampling2D(size=(2, 2)))
-    model.add(Convolution2D(128, 5, 5, border_model="same"))
-    model.add(BatchNormalization())
-    model.add(Activation("relu"))
+    model.add(Convolution2D(256, 5, 5, border_mode='same'))
+    # model.add(BatchNormalization())
+    model.add(Activation('relu'))
 
     model.add(UpSampling2D(size=(2, 2)))
-    model.add(Convolution2D(64, 5, 5, border_model="same"))
-    model.add(BatchNormalization())
-    model.add(Activation("relu"))
+    model.add(Convolution2D(128, 5, 5, border_mode='same'))
+    # model.add(BatchNormalization())
+    model.add(Activation('relu'))
 
     model.add(UpSampling2D(size=(2, 2)))
-    model.add(Convolution2D(3, 5, 5, border_model="same"))
-    model.add(Activation("tanh"))
-
+    model.add(Convolution2D(3, 5, 5, border_mode='same'))
+    model.add(Activation('tanh'))
     return model
 
 def D():
