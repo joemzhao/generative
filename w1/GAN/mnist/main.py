@@ -1,72 +1,90 @@
 from __future__ import division
-from keras.optimizers import Adam, SGD, RMSprop
+from tqdm import tqdm
 
-import cv2
+from keras.layers import Input
+from keras.models import Model, Sequential
+from keras.optimizers import Adam
+from keras.datasets import mnist
+from keras import backend as K
+
+import os
 import numpy as np
 import matplotlib.pyplot as plt
-import img_proc as preproc
-
-import glob
-import os
-
 import models
 
-def get_data_batch(l, n):
-    ''' yield n-sized batch from l '''
-    for i in range(0, len(l), n):
-        yield l[i:i+n]
-        # print l[i:i+n]
+os.environ["KERAS_BACKEND"]="tensorflow"
+K.set_image_dim_ordering('th')
 
-def train_model(path, batch_size, epochs):
-    np.random.seed(50)
+# for replicate
+np.random.seed(3)
 
-    Noisy, Image = preproc.img_demo(path)
-    print "Finish obtaining images..."
-    
-    Batches = [b for b in get_data_batch(Image, batch_size)]
-    print "Finish getting batches..."
+# load data
+# 60000 training images, each corresponds to a 28-by-28 dimentions vector
+(X_train, y_train), (X_test, y_test) = mnist.load_data()
+X_train = (X_train.astype(np.float32) - 127.5)/127.5
+X_train = X_train.reshape(60000, 784)
 
-    G = models.G()
-    D = models.D()
-    G_D = models.G_D(G, D)
-    print "Finish connecting nns..."
+# def an optimizer
+adam = Adam(lr=0.002, beta_1=0.5)
 
-    adam_G = Adam(lr=0.02, beta_1=0.05, beta_2=0.05, epsilon=0.001)
-    adam_D = Adam(lr=0.02, beta_1=0.05, beta_2=0.05, epsilon=0.001)
+# get G and D
+noise_dim = 10
 
-    G.compile(loss="binary_crossentropy", optimizer=adam_G)
-    G_D.compile(loss="binary_crossentropy", optimizer=adam_G)
+G = models.build_G(adam, noise_dim)
+D = models.build_D(adam, noise_dim)
 
-    D.trainable = True
-    D.compile(loss="binary_crossentropy", optimizer=adam_D)
+# connect G and D to get GAN
+# weights in D must be frozen when updating the weights in G
+D.trainable = False
+ganInput = Input(shape=(noise_dim,))
+x = G(ganInput)
+ganOutput = D(x)
+gan = Model(input=ganInput, output=ganOutput) # passing tensor to get gan
+gan.compile(loss="binary_crossentropy", optimizer=adam)
+print "finish building GAN..."
 
-    print "Start training..."
-    print "number of batches is: ", len(Batches[0])
-    print "Batch size is: ", batch_size
+dLosses = []
+gLosses = []
 
-    G_D_margin = 0.10
+def train(epochs=2, batch_size=128):
+    batch_count = int(X_train.shape[0]/batch_size)
+    print "Start training ..."
+    print "Total number of epochs: ", epochs
+    print "Batch size: ", batch_size
+    print "Number of batches: ", batch_count
 
-    for epoch in xrange(epochs):
-        print "Epoch: ", epoch
+    for e in xrange(1, epochs+1):
+        # go through epochs
+        print "-"*15, "Epoch %d" %e, "-"*15
 
-        if epoch == 0:
-            if os.path.exists("G_weights") and os.path.exists("D_weights"):
-                print "Loading saved weights..."
-                G.load_weights("G_weights")
-                D.load_weights("D_weights")
-            else:
-                print "No existing weigths availabel!"
+        for _ in tqdm(xrange(batch_count)):
+            # generate noise then get predict images from G
+            noise = np.random.normal(0, 1, size=[batch_size, noise_dim])
+            image_batch = X_train[np.random.randint(0, X_train.shape[0],
+                                           size=batch_size)]
+            Ged_images = G.predict(noise)
 
-        for index, img_batch in enumerate(Batches[0]):
-            print "Epoch: ", epoch, "Batch: ", index
-            noise_batch = np.array([ Noisy for n in xrange(len(img_batch))])
-            # print noise_batch
+            # concatenate the real and generated images, to feed to D
+            X = np.concatenate([image_batch, Ged_images])
+            yDis = np.zeros(2*batch_size)
+            yDis[:batch_size] = .9
 
+            # train D firstly
+            D.trainable = True
+            dloss = D.train_on_batch(X, yDis)
 
+            # train G, freeze weights in D firstly
+            D.trainable = False
+            noise = np.random.normal(0, 1, size=[batch_size, noise_dim])
+            yG = np.ones(batch_size)
+            gloss = gan.train_on_batch(noise, yG)
 
+        # for each batch, store loss of G, D
+        dLosses.append(dloss)
+        gLosses.append(gloss)
 
-
+    print dLosses
+    print gLosses
 
 if __name__ == "__main__":
-    args = preproc.get_args()
-    train_model(args.path, 5, 1)
+    train()
