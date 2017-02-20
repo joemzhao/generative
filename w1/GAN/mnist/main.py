@@ -16,7 +16,7 @@ os.environ["KERAS_BACKEND"]="tensorflow"
 K.set_image_dim_ordering('th')
 
 # for replicate
-np.random.seed(3)
+np.random.seed(1000)
 
 # load data
 # 60000 training images, each corresponds to a 28-by-28 dimentions vector
@@ -25,7 +25,7 @@ X_train = (X_train.astype(np.float32) - 127.5)/127.5
 X_train = X_train.reshape(60000, 784)
 
 # def an optimizer
-adam = Adam(lr=0.002, beta_1=0.5)
+adam = Adam(lr=0.0002, beta_1=0.5)
 
 # get G and D
 noise_dim = 10
@@ -87,4 +87,4 @@ def train(epochs=2, batch_size=128):
     print gLosses
 
 if __name__ == "__main__":
-    train()
+    train(epochs=30)
