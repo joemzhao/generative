@@ -1,5 +1,6 @@
 from __future__ import division
 from tqdm import tqdm
+from time import gmtime, strftime
 
 from keras.layers import Input
 from keras.models import Model, Sequential
@@ -8,12 +9,27 @@ from keras.datasets import mnist
 from keras import backend as K
 
 import os
+import csv
 import numpy as np
 import matplotlib.pyplot as plt
+import argparse
+
 import models
+import helpers
 
 os.environ["KERAS_BACKEND"]="tensorflow"
 K.set_image_dim_ordering('th')
+
+def Parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-bs", type=int, default=128)
+    parser.add_argument("-e", type=int, default=20)
+    return parser.parse_args()
+
+out_path = os.getcwd() + "/results/"
+img_path = os.getcwd() + "/imgs/"
+mod_path = os.getcwd() + "/saved_model/"
+now = strftime("%Y-%m-%d %H:%M:%S", gmtime())
 
 # for replicate
 np.random.seed(1000)
@@ -42,6 +58,13 @@ ganOutput = D(x)
 gan = Model(input=ganInput, output=ganOutput) # passing tensor to get gan
 gan.compile(loss="binary_crossentropy", optimizer=adam)
 print "finish building GAN..."
+
+def save_model(epoch_index):
+    G.save(mod_path+"gan_G_epoch_%d_.h5" % epoch_index)
+    G.save_weights(mod_path+"gan_G_epoch_%d_.h5" % epoch_index)
+
+    D.save(mod_path+"gan_D_epoch_%d_.h5" % epoch_index)
+    D.save_weights(mod_path+"gan_D_epoch_%d_.h5" % epoch_index)
 
 dLosses = []
 gLosses = []
@@ -83,8 +106,15 @@ def train(epochs=2, batch_size=128):
         dLosses.append(dloss)
         gLosses.append(gloss)
 
+        if e%10 == 0 or e == 1:
+            save_model(e)
+
     print dLosses
     print gLosses
 
+    helpers.write_results(out_path+now+"bs=%d"%batch_size+"e=%d"%epochs+".csv",
+                                    dLosses, gLosses)
+
 if __name__ == "__main__":
-    train(epochs=30)
+    args = Parser()
+    train(epochs=args.e, batch_size=args.bs)
