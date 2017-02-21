@@ -43,9 +43,8 @@ X_train = X_train.reshape(60000, 784)
 # def an optimizer
 adam = Adam(lr=0.0002, beta_1=0.5)
 
-# get G and D
 noise_dim = 10
-
+# get G and D
 G = models.build_G(adam, noise_dim)
 D = models.build_D(adam, noise_dim)
 
@@ -108,12 +107,14 @@ def train(epochs=2, batch_size=128):
 
         if e%10 == 0 or e == 1:
             save_model(e)
+            helpers.get_image_G(G=G, epoch=e, img_nums=36, dim=(6, 6),
+                                       figsize=(10, 10), noise_dim=10, path=img_path)
 
     print dLosses
     print gLosses
 
     helpers.write_results(out_path+now+"bs=%d"%batch_size+"e=%d"%epochs+".csv",
-                                    dLosses, gLosses)
+                                       dLosses, gLosses)
 
 if __name__ == "__main__":
     args = Parser()
