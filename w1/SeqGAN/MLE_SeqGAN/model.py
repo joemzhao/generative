@@ -1,4 +1,6 @@
 from tensorflow.python.ops import tensor_array_ops, control_flow_ops
+from overrides import overrides
+
 import tensorflow as tf
 
 class LSTM(object):
@@ -89,7 +91,7 @@ class LSTM(object):
             body=_pretrain_recurrence,
             loop_vars=(tf.constant(0, dtype=tf.int32), tf.nn.embedding_lookup(self.g_embeddings, self.start_token), self.h0, g_predictions))
 
-        self.g_predictions = tf.transpose(self.g_predictions.stack(), perm[1, 0, 2])
+        self.g_predictions = tf.transpose(self.g_predictions.stack(), perm=[1, 0, 2])
 
         # pretrain loss
         self.pretrain_loss = -tf.reduce_sum(
@@ -212,6 +214,3 @@ class LSTM(object):
             return logists
 
         return unit
-
-# if __name__ == "__main__":
-#     obj = LSTM(10, 128, 16, 64, 20, 10)
