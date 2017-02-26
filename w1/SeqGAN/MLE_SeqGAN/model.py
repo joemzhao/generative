@@ -124,11 +124,12 @@ class LSTM(object):
 
 
     def generate(self, session):
-        outputs = session.run(self.gen_x)
+        outputs = session.run([self.gen_x])
         return outputs[0]
 
     def pretrain_step(self, session, x):
-        outputs = session.run([self.pretrain_updates, self.pretrain_lpss, self.g_predictions], feed_dict={self.x: x})
+        outputs = session.run([self.pretrain_updates, self.pretrain_loss, self.g_predictions], feed_dict={self.x: x})
+        return outputs
 
     def init_matrix(self, shape):
         return tf.random_normal(shape, stddev=0.1)
