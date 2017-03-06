@@ -1,4 +1,4 @@
-from overrides import overrides
+# from overrides import overrides
 from tensorflow.python.ops import tensor_array_ops, control_flow_ops
 
 import model
@@ -7,7 +7,7 @@ import numpy as np
 import pickle
 
 class TARGET_LSTM(model.LSTM):
-    @overrides
+    # @overrides
     def __init__(self, num_emb, batch_size, emb_dim, hidden_dim,
                      sequence_len, start_token, params):
         self.num_emb = num_emb
@@ -113,11 +113,11 @@ class TARGET_LSTM(model.LSTM):
     # def init_vector(self, shape)
     # def g_optimizer()
 
-    @overrides
+    # @overrides
     def init_matrix(self, shape):
         return tf.random_normal(shape, stddev=1.)
 
-    @overrides
+    # @overrides
     def create_recurrent_unit(self, params):
         # Weights and Bias for input and hidden tensor
         self.Wi = tf.Variable(self.params[1])
@@ -178,7 +178,7 @@ class TARGET_LSTM(model.LSTM):
 
         return unit
 
-    @overrides
+    # @overrides
     def create_output_unit(self, params):
         self.Wo = tf.Variable(self.params[13])
         self.bo = tf.Variable(self.params[14])

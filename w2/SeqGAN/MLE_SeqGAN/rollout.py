@@ -75,41 +75,41 @@ class ROLLOUT(object):
         self.gen_x = self.gen_x.stack() # to sequence_len x batch_size, generated idx
         self.gen_x = tf.transpose(self.gen_x, perm=[1, 0]) # batch_size x sequence_len
 
-        def get_reward(self, sess, input_x, rollout_num, cnn):
-            rewards = []
-            for i in xrange(rollout_num):
-                for given_num in xrange(1, sequence_len):
-                    feed = {
-                        self.x: input_x,
-                        self.given_num: given_num
-                    }
-                    outputs = sess.run([self.gen_x], feed)
-                    generated_poem = outputs[0] # batch_size x sequence_len
-                    feed = {
-                        cnn.input_x: generated_poem,
-                        cnn.dis_dropout_keep_prob: 1.
-                    }
-                    ypred_for_auc = sess.run(cnn.ypred_for_auc, feed)
-                    ypred = np.array([item[1] for item in ypred_for_auc])
-                    if i == 0:
-                        rewards.append(ypred)
-                    else:
-                        rewards[given_num - 1] += ypred
-
-                # reward from the last char
+    def get_reward(self, sess, input_x, rollout_num, cnn):
+        rewards = []
+        for i in xrange(rollout_num): # number of future steps considered
+            for given_num in xrange(1, self.sequence_len):  # note the given_num
                 feed = {
-                    cnn.input_x: input_x,
-                    cnn.dropout_keep_prob: 1.}
-
+                    self.x: input_x,
+                    self.given_num: given_num
+                }
+                outputs = sess.run([self.gen_x], feed)
+                generated_poem = outputs[0] # batch_size x sequence_len
+                feed = {
+                    cnn.input_x: generated_poem,
+                    cnn.dropout_keep_prob: 1.
+                }
                 ypred_for_auc = sess.run(cnn.ypred_for_auc, feed)
                 ypred = np.array([item[1] for item in ypred_for_auc])
                 if i == 0:
                     rewards.append(ypred)
                 else:
-                    rewards[sequence_len-1] += ypred
-            rewards = np.transpose(np.array(rewards)) / (1. * rollout_num)
-            # batch_size x sequence_len
-            return rewards
+                    rewards[given_num - 1] += ypred
+
+            # reward from the last char (20 here)
+            feed = {
+                cnn.input_x: input_x,
+                cnn.dropout_keep_prob: 1.}
+
+            ypred_for_auc = sess.run(cnn.ypred_for_auc, feed)
+            ypred = np.array([item[1] for item in ypred_for_auc])
+            if i == 0:
+                rewards.append(ypred)
+            else:
+                rewards[self.sequence_len-1] += ypred
+        rewards = np.transpose(np.array(rewards)) / (1. * rollout_num)
+        # batch_size x sequence_len
+        return rewards
 
     def create_recurrent_unit(self):
         # Weights and Bias for input and hidden tensor

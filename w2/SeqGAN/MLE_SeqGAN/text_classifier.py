@@ -41,7 +41,7 @@ class TextCNN(object):
         # create convolution layers, for each filer depth, connected with a
         # max_pooling. zip(filter_sizes, num_filters)
         pooled_outputs = []
-        for filer_size, num_filter in zip(filter_sizes, num_filters):
+        for filter_size, num_filter in zip(filter_sizes, num_filters):
             with tf.name_scope("conv-max_pool-%s" % filter_size):
                 filter_shape = [filter_size, emb_size, 1, num_filter]
                 W = tf.Variable(tf.truncated_normal(filter_shape, stddev=0.1), name="W")
@@ -70,12 +70,12 @@ class TextCNN(object):
         self.h_pool = tf.concat(axis=3, values=pooled_outputs)
         self.h_pool_flat = tf.reshape(self.h_pool, [-1, tot_num_filters])
 
-        with tf.name_scope("highway"):
-            self.h_highway = highway(self.h_pool_flat,
-            self.h_pool_flat.get_shape()[1], 1, 0)
+        # with tf.name_scope("highway"):
+        #     self.h_highway = highway(self.h_pool_flat,
+        #     self.h_pool_flat.get_shape()[1], 1, 0)
 
         with tf.name_scope("dropout"):
-            self.h_drop = tf.nn.dropout(self.h_highway, self.dropout_keep_prob)
+            self.h_drop = tf.nn.dropout(self.h_pool_flat, self.dropout_keep_prob)
 
         with tf.name_scope("output"):
             W = tf.Variable(tf.truncated_normal([tot_num_filters,

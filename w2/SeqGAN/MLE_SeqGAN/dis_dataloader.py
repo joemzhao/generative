@@ -6,6 +6,7 @@ from re import compile as _Re
 class Dis_dataloader(object):
     def __init__(self, vocab_size=5000, sequence_len=20):
         self.vocab_size = vocab_size
+        self.sequence_len = sequence_len
 
     def load_data_n_labels(self, positive_file, negative_file):
         ''' positive from the real data, negative is generated from G '''
@@ -22,7 +23,7 @@ class Dis_dataloader(object):
             for line in n:
                 line = line.strip().split()
                 parse_line = [int(x) for x in line]
-                if len(parse_line) == sequence_len:
+                if len(parse_line) == self.sequence_len:
                     negative_egs.append(parse_line)
         n.close()
 

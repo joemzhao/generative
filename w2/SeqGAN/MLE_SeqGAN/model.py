@@ -1,5 +1,5 @@
 from tensorflow.python.ops import tensor_array_ops, control_flow_ops
-from overrides import overrides
+# from overrides import overrides
 
 import tensorflow as tf
 

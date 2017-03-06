@@ -1,6 +1,6 @@
 from gen_dataloader import Gen_Data_loader, Likelihood_Data_loader
 from target_lstm import TARGET_LSTM
-from overrides import overrides
+# from overrides import overrides
 
 import model
 import tensorflow as tf
@@ -10,14 +10,14 @@ import cPickle
 import random
 
 # G parameters
-EBD_DIM = 16
-HID_DIM = 16
+EBD_DIM = 32
+HID_DIM = 32
 SEQ_LEN = 20
 START_TOKEN = 0
 
-PRE_EPC_NUM = 100
+PRE_EPC_NUM = 350
 TRAIN_ITER = 1
-SEED = 10
+SEED = 88
 BATCH_SIZE = 64
 
 # paths of real_data, G_output, evaluating file
@@ -28,7 +28,7 @@ eval_file = "target_generate/eval_file" # output file of our G
 generated_num = 10000
 
 class G_(model.LSTM):
-    @overrides
+    # @overrides
     def g_optimizer(self, *args, **kwargs):
         return tf.train.AdamOptimizer()
 

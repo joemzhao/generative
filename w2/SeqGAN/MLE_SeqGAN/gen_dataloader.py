@@ -1,4 +1,4 @@
-from overrides import overrides
+# from overrides import overrides
 
 import numpy as np
 
@@ -32,7 +32,7 @@ class Gen_Data_loader(object):
             self.pointer = 0
 
 class Likelihood_Data_loader(Gen_Data_loader):
-    @overrides
+    # @overrides
     def __init__(self, batch_size, SEQ_LEN):
         Gen_Data_loader.__init__(self, batch_size, SEQ_LEN)
         self.likeli_flag = 1
