@@ -22,15 +22,14 @@ class ROLLOUT(object):
         self.g_recurrent_unit = self.create_recurrent_unit() # h_t_m_1 to h_t
         self.g_output_unit = self.create_output_unit() # h_t to o_t
 
-        # placeholders
         self.x = tf.placeholder(tf.int32, shape=[self.batch_size, self.sequence_len])
-        self.given_num = tf.placeholder(tf.int32) # indice sequence from G, no start_token
+        self.given_num = tf.placeholder(tf.int32)
 
+        # processed for batch
         with tf.device("/cpu:0"):
-            inputs = tf.split(axis=1, num_or_size_splits=self.sequence_len,
-                        value=tf.nn.embedding_lookup(self.g_embeddings, self.x))
+            inputs = tf.split(axis=1, num_or_size_splits=self.sequence_len, value=tf.nn.embedding_lookup(self.g_embeddings, self.x))
             self.processed_x = tf.stack(
-            [tf.squeeze(input_, [1]) for input_ in inputs]) # seq_len x batchsize x emb_dim
+                [tf.squeeze(input_, [1]) for input_ in inputs])  # seq_length x batch_size x emb_dim
 
         ta_emb_x = tensor_array_ops.TensorArray(dtype=tf.float32, size=self.sequence_len)
         ta_emb_x = ta_emb_x.unstack(self.processed_x)
@@ -56,7 +55,7 @@ class ROLLOUT(object):
             o_t = self.g_output_unit(h_t)
             log_prob = tf.log(tf.nn.softmax(o_t))
             next_token = tf.cast(tf.reshape(tf.multinomial(log_prob, 1),
-                         [self.batch_size], tf.int32))
+                         [self.batch_size]), tf.int32)
             x_tp1 = tf.nn.embedding_lookup(self.g_embeddings, next_token)
             gen_x = gen_x.write(i, next_token)
             return i+1, x_tp1, h_t, given_num, gen_x
@@ -66,9 +65,6 @@ class ROLLOUT(object):
             body=_g_recurrence_1,
             loop_vars=(tf.constant(0, dtype=tf.int32),
                        tf.nn.embedding_lookup(self.g_embeddings, self.start_token), self.h0, self.given_num, gen_x))
-
-        print x_t
-
 
         _, _, _, _, self.gen_x = control_flow_ops.while_loop(
             cond=lambda i, _1, _2, _3, _4: i < self.sequence_len,
