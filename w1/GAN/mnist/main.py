@@ -32,7 +32,7 @@ mod_path = os.getcwd() + "/saved_model/"
 now = strftime("%Y-%m-%d %H:%M:%S", gmtime())
 
 # for replicate
-np.random.seed(1000)
+# np.random.seed(1000)
 
 # load data
 # 60000 training images, each corresponds to a 28-by-28 dimentions vector
@@ -115,6 +115,7 @@ def train(epochs=2, batch_size=128):
 
     helpers.write_results(out_path+now+"bs=%d"%batch_size+"e=%d"%epochs+".csv",
                                        dLosses, gLosses)
+    helpers.get_image_G(G, epochs, img_path)
 
 if __name__ == "__main__":
     args = Parser()
