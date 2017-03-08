@@ -27,6 +27,17 @@ class Gen_Data_loader(object):
         f.close()
         # print len(whole)
         whole = whole[:200000]
+
+        with open("text_data/partial_real.txt", "w") as f:
+            seq_list = []
+            for idx, wd in enumerate(whole):
+                seq_list.append(wd)
+                if (idx+1) % self.sequence_len == 0:
+                    # print seq_list
+                    connected = " ".join([str(x) for x in seq_list]) + "\n"
+                    f.write(connected)
+                    seq_list = []
+        f.close()
         for idx, word in enumerate(whole):
             if idx % self.sequence_len == 0:
                 self.token_stream.append(whole[idx:idx+self.sequence_len])
@@ -47,6 +58,7 @@ class Gen_Data_loader(object):
         self.pointer = 0
 
 class Likelihood_Data_loader(Gen_Data_loader):
+    #@overrides
     def __init__(self, batch_size=128, sequence_len=10):
         Gen_Data_loader.__init__(self, batch_size, sequence_len)
         self.likeli_flag = 1

@@ -25,6 +25,7 @@ positive_file = "save/real_data.txt"
 negative_file = "target_generate/generator_sample.txt"
 eval_file = "target_generate/eval_file" # output file of our G
 
+
 generated_num = 1000
 
 class G_(model.LSTM):
@@ -35,6 +36,13 @@ class G_(model.LSTM):
 def get_trainable_model(num_emb, BATCH_SIZE, EBD_DIM, HID_DIM,
                                      SEQ_LEN, START_TOKEN):
     return G_(num_emb, BATCH_SIZE, EBD_DIM, HID_DIM, SEQ_LEN, START_TOKEN)
+
+def pretrain_saver(path, generated_samples):
+    with open(path, "w") as f:
+        for wd in generated_samples:
+            connected = " ".join([str(x) for x in wd]) + "\n"
+            f.write(connected)
+    f.close()
 
 def generate_samples(sess, trainable_model, batch_size, generated_num, output_file):
     ''' outputs from G '''
@@ -47,6 +55,7 @@ def generate_samples(sess, trainable_model, batch_size, generated_num, output_fi
             connected = " ".join([str(x) for x in wd]) + "\n"
             f.write(connected)
     f.close()
+    return generated_samples
 
 def target_loss(sess, target_lstm, data_loader):
     ''' obtain the loss from the target_lstm, this would be the target '''

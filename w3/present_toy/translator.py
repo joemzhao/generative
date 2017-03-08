@@ -29,4 +29,4 @@ if __name__ == "__main__":
     js_path = "text_data/dict.json"
     ls_path = "target_generate/eval_file_of_pretrain.txt"
     full = spliter(ls_path)
-    print mapping(js_path, full)[:20]
+    print mapping(js_path, full[:2000])[:20]
