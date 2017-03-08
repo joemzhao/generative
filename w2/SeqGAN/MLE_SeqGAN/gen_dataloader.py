@@ -15,7 +15,7 @@ class Gen_Data_loader(object):
                 if len(parse_line) == self.SEQ_LEN:
                     self.token_stream.append(parse_line)
 
-        # print len(self.token_stream)
+        print len(self.token_stream) * 20
         self.num_batch = len(self.token_stream) / self.batch_size
 
         # remove small remainders, if necessary

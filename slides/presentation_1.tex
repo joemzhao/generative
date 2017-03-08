@@ -23,33 +23,33 @@
 % which change the colors and layouts of slides. Below this is a list
 % of all the themes, uncomment each in turn to see what they look like.
 
-%\usetheme{default}
-%\usetheme{AnnArbor}
-%\usetheme{Antibes}
-%\usetheme{Bergen}
-%\usetheme{Berkeley}
-%\usetheme{Berlin}
-%\usetheme{Boadilla}
-%\usetheme{CambridgeUS}
-%\usetheme{Copenhagen}
-%\usetheme{Darmstadt}
-%\usetheme{Dresden}
-%\usetheme{Frankfurt}
-%\usetheme{Goettingen}
-%\usetheme{Hannover}
-%\usetheme{Ilmenau}
-%\usetheme{JuanLesPins}
-%\usetheme{Luebeck}
-\usetheme{Madrid}
-%\usetheme{Malmoe}
-%\usetheme{Marburg}
-%\usetheme{Montpellier}
-%\usetheme{PaloAlto}
-%\usetheme{Pittsburgh}
-%\usetheme{Rochester}
-%\usetheme{Singapore}
-%\usetheme{Szeged}
-%\usetheme{Warsaw}
+% \usetheme{default}
+% \usetheme{AnnArbor}
+% \usetheme{Antibes}
+% \usetheme{Bergen}
+% \usetheme{Berkeley}
+% \usetheme{Berlin}
+\usetheme{Boadilla}
+% \usetheme{CambridgeUS}
+% \usetheme{Copenhagen}
+% \usetheme{Darmstadt}
+% \usetheme{Dresden}
+% \usetheme{Frankfurt}
+% \usetheme{Goettingen}
+% \usetheme{Hannover}
+% \usetheme{Ilmenau}
+% \usetheme{JuanLesPins}
+% \usetheme{Luebeck}
+% \usetheme{Madrid}
+% \usetheme{Malmoe}
+% \usetheme{Marburg}
+% \usetheme{Montpellier}
+% \usetheme{PaloAlto}
+% \usetheme{Pittsburgh}
+% \usetheme{Rochester}
+% \usetheme{Singapore}
+% \usetheme{Szeged}
+% \usetheme{Warsaw}
 
 % As well as themes, the Beamer class has a number of color themes
 % for any slide theme. Uncomment each of these in turn to see how it
@@ -78,29 +78,47 @@
 
 \usepackage{graphicx} % Allows including images
 \usepackage{booktabs} % Allows the use of \toprule, \midrule and \bottomrule in tables
+\usepackage{caption}
 
 %----------------------------------------------------------------------------------------
 %	TITLE PAGE
 %----------------------------------------------------------------------------------------
 
-\title[Text generation in discrete space]{Text generation in discrete space} % The short title appears at the bottom of every slide, the full title is only on the title page
+\title[Text Generation in Discrete Space]{Text Generation in Discrete Space} % The short title appears at the bottom of every slide, the full title is only on the title page
 
-\author[Mengjie Zhao \and Fei Mi]{\underline{Mengjie Zhao}  \and Fei Mi } % Your name
+\author[M. Zhao et F. Mi]{\underline{Mengjie Zhao}  \and Fei Mi } % Your name
 \institute[] % Your institution as it will appear on the bottom of every slide, may be shorthand to save space
 {
 \footnotesize{Artificial Intelligence Laboratory (LIA)}
+\date{\today}
 \\\medskip
 \medskip
-\footnotesize{\'Ecole polytechnique f\'ed\'erale de Lausanne} \\ % Your institution for the title page
+\medskip
+\medskip
+\medskip
+\medskip
+% \footnotesize{\'Ecole polytechnique f\'ed\'erale de Lausanne} \\ % Your institution for the title page
 \medskip
 % \textit{john@smith.com} % Your email address
+\vspace{-1cm}
+\begin{figure}
+\includegraphics[width=0.2\linewidth]{imgs/epfl1.eps}
+\end{figure}
 }
-\date{\today} % Date, can be changed to a custom date
+
+ % Date, can be changed to a custom date
 
 \begin{document}
-
 \begin{frame}
 \titlepage % Print the title page as the first slide
+\end{frame}
+
+\begin{frame}
+\frametitle{Some info about me...} 
+\begin{itemize} 
+\item Mengjie (Joe) Zhao
+\item MS student from communication systems
+\end{itemize}
 \end{frame}
 
 \begin{frame}
@@ -139,6 +157,59 @@
 \end{frame}
 
 %------------------------------------------------
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{To be more formal}
+\begin{itemize}
+\item Define $p_{data}$ as the distribution where data generated from
+\item Input noise $\textbf{z}$ from noise distribution $p_z(z)$
+\item Generator: $G(z;\theta_{g}) \Rightarrow \textbf{x}$
+\item Discriminator: $D(\textbf{x}; \theta_{d})$
+\item Two-player minimax game with value function $V(G, D)$:
+\end{itemize}
+\begin{figure}
+\includegraphics[width=0.8\linewidth]{imgs/game}
+\end{figure}
+\end{frame}
+
+%------------------------------------------------
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{To be more cartoon...}
+\begin{figure}
+\includegraphics[width=\linewidth]{imgs/gan_numeric}
+\end{figure}
+\vspace{1cm}
+\hspace{9cm}\tiny{(Goodfellow et al. 2014)}
+\end{frame}
+%------------------------------------------------
+
+%------------------------------------------------
+\begin{frame}
+\frametitle{Performance of a toy GAN (full connected MLPs)}
+\begin{figure}
+\centering
+\begin{minipage}{.5\textwidth}
+  \centering
+  \includegraphics[width=.62\linewidth]{imgs/gan_generated_img_e_50.png}
+  \captionof{figure}*{Generated letters from G (50 epochs)}
+  \label{fig:test1}
+\end{minipage}%
+\begin{minipage}{.5\textwidth}
+  \centering
+  \includegraphics[width=.83\linewidth]{imgs/loss_d.eps}
+  \captionof{figure}*{Loss of D (50 epochs)}
+  \label{fig:test2}
+\end{minipage}
+\end{figure}
+\end{frame}
+%------------------------------------------------
+
+
 
 % \begin{frame}
 % \frametitle{Bullet Points}
@@ -187,20 +258,85 @@
 
 % \end{columns}
 % \end{frame}
+\begin{frame}
+\frametitle{Overview} % Table of contents slide, comment this block out to remove it
+\tableofcontents % Throughout your presentation, if you choose to use \section{} and \subsection{} commands, these will automatically be printed on this slide as an overview of your presentation
+\end{frame}
 
 %------------------------------------------------
-\section{Problem definition: generating in discrete space?}
+\section{Generating in discrete space?}
 %------------------------------------------------
 
 \begin{frame}
 \frametitle{Generating in discrete space?}
 \begin{itemize}
-\item Differentiable generator and discriminator
+\item Generator and discriminator have to be differentiable.
 \item But for text generation?
 	\begin{itemize}
 		\item word embedding
 		\item policy iteration
-		\item categorical reparameterization (gumbel-softmax) ...
+		\item categorical reparameterisation (gumbel-softmax) ...
+		% a cntinuous distribution that can approximate
+		% categorical samples
+
+	\end{itemize}
+\end{itemize}
+\end{frame}
+
+%------------------------------------------------
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Sequence GAN (SeqGAN) for text generation}
+\begin{itemize}
+\item Treat generator as an agent in reinforcement learning
+	\begin{itemize}
+		\item State: generated tokens so far
+		\item Action: next token to be generated
+		\item Reward: evaluation of the sequence from D
+		\item \textbf{Policy iteration}
+	\end{itemize} 
+\item Experimental performance:
+\begin{figure}
+\centering
+\includegraphics[width=0.75\linewidth]{imgs/pre_cru}
+\end{figure}
+\vspace{-.2cm}
+\hspace{9cm}\tiny{(Yu et al. 2017)}
+\end{itemize}
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Generated sentences by SeqGAN}
+\begin{itemize}
+\item The Big Bang Theory subtitle dataset -- courtesy from @sudongqi
+\item Some generated sentences:
+	\begin{itemize}
+		\item word embedding
+		\item policy iteration
+		\item categorical reparameterisation (gumbel-softmax) ...
+		% a cntinuous distribution that can approximate
+		% categorical samples
+
+	\end{itemize}
+\end{itemize}
+\end{frame}
+
+%------------------------------------------------
+
+%------------------------------------------------
+\begin{frame}
+\frametitle{Dialog generation}
+\begin{itemize}
+\item The Big Bang Theory subtitle dataset -- courtesy from @sudongqi
+\item Some generated sentences:
+	\begin{itemize}
+		\item word embedding
+		\item policy iteration
+		\item categorical reparameterisation (gumbel-softmax) ...
 		% a cntinuous distribution that can approximate
 		% categorical samples
 
@@ -243,44 +379,81 @@
 % \end{frame}
 
 %------------------------------------------------
-\section{Rate of progress -- week 1}
+\section{Rate of progress}
 %------------------------------------------------
+\begin{frame}
+\frametitle{Rate of progress}
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{imgs/gantt}
+\end{figure}
+\end{frame}
+
+%------------------------------------------------
+\begin{frame}
+\frametitle{Overview} % Table of contents slide, comment this block out to remove it
+\tableofcontents % Throughout your presentation, if you choose to use \section{} and \subsection{} commands, these will automatically be printed on this slide as an overview of your presentation
+\end{frame}
+%------------------------------------------------
+\section{Conclusion}
+%------------------------------------------------
+\begin{frame}
+\frametitle{Conclusion}
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{imgs/gantt}
+\end{figure}
+\end{frame}
+
+%------------------------------------------------
+
+% \begin{frame}[fragile] % Need to use the fragile option when verbatim is used in the slide
+% \frametitle{Citation}
+% An example of the \verb|\cite| command to cite within the presentation:\\~
+
+% This statement requires citation \cite{p1}.
+% \end{frame}
+
+%------------------------------------------------
+%------------------------------------------------
+
 
 \begin{frame}
-\frametitle{Rate of progress -- week 1}
-A toy GAN for MNIST: 
-
+\vspace{3cm}
+\Huge{\centerline{That's it!}}
+\begin{figure}
+\hspace{-7cm}
+\includegraphics[width=0.2\linewidth]{imgs/bt}
+\end{figure}
 \end{frame}
 
-%------------------------------------------------
-
-\begin{frame}[fragile] % Need to use the fragile option when verbatim is used in the slide
-\frametitle{Citation}
-An example of the \verb|\cite| command to cite within the presentation:\\~
-
-This statement requires citation \cite{p1}.
-\end{frame}
-
-%------------------------------------------------
+%---------------------------------------------------
 
 \begin{frame}
 \frametitle{References}
 \footnotesize{
 \begin{thebibliography}{99} % Beamer does not support BibTeX so references must be inserted manually as below
-\bibitem[Smith, 2012]{p1} John Smith (2012)
-\newblock Title of the publication
-\newblock \emph{Journal Name} 12(3), 45 -- 678.
+\bibitem[Goodfellow et al]{p1} Goodfellow et. al. (2014)
+\newblock Generative Adversarial Networks
+\newblock \emph{NIPS 2014}
+
+\bibitem[Yu et al]{p1} Yu et. al. (2017)
+\newblock SeqGAN: Sequence Generative Adversarial Nets with Policy Gradient 
+\newblock \emph{AAAI 17}
+
+\bibitem[Li et. al.]{p1} Li et. al. (2017)
+\newblock Adversarial Learning for Neural Dialogue Generation
+\newblock \emph{arXiv:1701.06547}
+
+\bibitem[Jang et. al.]{p1} Jang et. al. (2016)
+\newblock Categorical Reparameterization with Gumbel-Softmax
+\newblock \emph{arXiv:1611.01144}
+
+
 \end{thebibliography}
 }
 \end{frame}
 
-%------------------------------------------------
-
-
-\begin{frame}
-\Huge{\centerline{The End}}
-\end{frame}
-
-%----------------------------------------------------------------------------------------
+%-------------------------------------
 
 \end{document}

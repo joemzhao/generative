@@ -20,10 +20,10 @@ START_TOKEN = 0
 SEED = 10
 
 # hyperparams for generator G
-EBD_DIM = 1
-HID_DIM = 1
+EBD_DIM = 32
+HID_DIM = 32
 
-PRE_EPC_NUM = 1
+PRE_EPC_NUM = 10
 TRAIN_ITER = 1
 BATCH_SIZE = 64
 

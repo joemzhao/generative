@@ -1,6 +1,6 @@
 import numpy as np
 import json
-import simplejson
+# import simplejson
 
 data_path = "text_data/text.txt"
 
