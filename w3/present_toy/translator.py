@@ -11,8 +11,6 @@ def spliter(ls_path):
     ls.close()
     return whole
 
-
-
 def mapping(json_path, val_list):
     _j = open(json_path).read()
     _dict = json.loads(_j)
@@ -28,5 +26,10 @@ def mapping(json_path, val_list):
 if __name__ == "__main__":
     js_path = "text_data/dict.json"
     ls_path = "target_generate/eval_file_of_pretrain.txt"
+    pre_path = "compare/pretrain_results.txt"
     full = spliter(ls_path)
-    print mapping(js_path, full[:2000])[:20]
+    print "This is results from GAN: "
+    print mapping(js_path, full[:2000])[:80]
+
+    print "This is results from pretrain: "
+    print mapping(js_path, spliter(pre_path)[:2000])[:80]

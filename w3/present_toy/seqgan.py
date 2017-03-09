@@ -19,27 +19,27 @@ START_TOKEN = 0
 SEED = 10
 
 # hyperparams for generator G
-EBD_DIM = 1
-HID_DIM = 1
+EBD_DIM = 32
+HID_DIM = 32
 
-PRE_EPC_NUM = 20
-TRAIN_ITER = 1
+PRE_EPC_NUM = 66
+TRAIN_ITER = 3
 BATCH_SIZE = 32
 
 # Total number of batch
-TOTOAL_BATCH = 2#int((200000/10)/BATCH_SIZE)
+TOTOAL_BATCH = int((200000/10)/BATCH_SIZE)-1
 
 # hyperparams for D
-dis_embedding_dim = 8
+dis_embedding_dim = 32
 dis_filter_sizes = [1, 2, 3, 4, 5, 6, 7]#, 8, 9, 10, 15, 20]
 dis_num_filters = [100, 200, 200, 200, 200, 100, 100]#, 100, 100, 100, 160, 160]
 dis_dropout_keep_prob = .75
-dis_l2_reg_lambda = 0.2
+dis_l2_reg_lambda = 0.1
 
 # training params
 dis_batch_size = 32
 dis_num_epochs = 1
-dis_alter_epoch = 1
+dis_alter_epoch = 10
 
 positive_file = 'text_data/text.txt'
 _gan_positive_file = 'text_data/partial_real.txt'
@@ -113,7 +113,7 @@ def main():
         dis_x_train, dis_y_train = dis_dataloader.load_train_data(_gan_positive_file, negative_file)
         dis_batches = dis_dataloader.batch_iteror(
                 zip(dis_x_train, dis_y_train),
-                dis_batch_size, dis_num_epochs)
+                dis_batch_size, 3)
 
         for batch in dis_batches:
             try:
@@ -147,9 +147,9 @@ def main():
 
         rollout.update_params()
 
-        print "Tarining G"
-        for idx_G in xrange(2):
-            print "iter %d for training G" % idx_G
+        print "Tarining D"
+        for idx_D in xrange(5):
+            print "iter %d for training D" % idx_D
             _ = generate_samples(sess, G, BATCH_SIZE, generated_num, negative_file)
             dis_x_train, dis_y_train = dis_dataloader.load_train_data(_gan_positive_file, negative_file)
             dis_batches = dis_dataloader.batch_iteror(zip(dis_x_train, dis_y_train), dis_batch_size, 3)

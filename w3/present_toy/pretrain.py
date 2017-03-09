@@ -1,5 +1,5 @@
 from gen_dataloader import Gen_Data_loader, Likelihood_Data_loader
-from target_lstm import TARGET_LSTM
+# from target_lstm import TARGET_LSTM
 # from overrides import overrides
 
 import model
@@ -16,7 +16,7 @@ SEQ_LEN = 25
 START_TOKEN = 0
 
 PRE_EPC_NUM = 350
-TRAIN_ITER = 1
+TRAIN_ITER = 10
 SEED = 88
 BATCH_SIZE = 64
 
