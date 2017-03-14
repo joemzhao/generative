@@ -1,6 +1,8 @@
 import numpy as np
 import tensorflow as tf
 import os
+import shutil
+
 import helpers
 import data_reader
 import model
@@ -32,10 +34,15 @@ if projection_size != None:
 model_name = "p"+str(projection_size)+"_h"+str(hidden_size)+"_x"+str(num_layers)
 save_path = file_name+"/"+model_name
 
+if os.path.exists(save_path):
+    shutil.rmtree(save_path)
+
+os.mkdir(save_path)
+
 # params for training
 truncated_std = .1
 keep_prob = .95
-max_epoch = 2
+max_epoch = 10
 norm_clip = 5.
 adam_lr = .001
 
@@ -45,7 +52,11 @@ encoder_decoder = model.seq2seq(batch_size, vocab_size, embedding_size,
                                     truncated_std, hidden_size, projection_size)
 
 encoder_decoder.initialize_input_layers()
-_, avg_loss = encoder_decoder._seq2seq()
+
+# model returns
+# self.total_loss, self.avg_loss, logits, self.enc_states, self.dec_outputs, self.dec_states
+
+_, avg_loss, _, _, _, _ = encoder_decoder._seq2seq()
 
 optimizer = tf.train.AdamOptimizer(adam_lr)
 gradients = optimizer.compute_gradients(avg_loss)
@@ -57,9 +68,11 @@ sess = tf.InteractiveSession()
 sess.run(tf.global_variables_initializer())
 
 count = 0
-epoch_loss = 0
+epoch_loss = 0.
 epoch_count = 0
 losses = []
+saver = tf.train.Saver()
+
 
 while True:
     current_epoch = reader.epoch
@@ -70,9 +83,15 @@ while True:
         print "\n----------end of epoch:" + str(reader.epoch-1) + "----------"
         print "    avg loss: " + str(epoch_loss/epoch_count)
         print "\n"
+
         losses.append(epoch_loss/epoch_count)
-        epoch_loss = 0
+        epoch_loss = 0.
         epoch_count = 0
+
+        cwd = os.getcwd()
+        saver.save(sess, cwd+"/"+save_path+"/model.ckpt")
+        print "Model saved"
+
         if reader.epoch == (max_epoch+1):
             break
 

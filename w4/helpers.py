@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import json
+import sys
 
 def create_buckets(list_bucket_size):
     '''
@@ -31,3 +32,51 @@ def data_processing(data, size, batch_size):
         dec_tar[len(pair[1]), i] = 3
 
     return enc_inp, dec_inp, dec_tar
+
+def build_input(sequence):
+    dec_inp = np.zeros((1, len(sequence)))
+    dec_inp[0][:] = sequence
+    return dec_inp.T
+
+def print_sentence(index_list, reader):
+    for index in index_list:
+        sys.stdout.write(reader.id_dict[index])
+        sys.stdout.write(" ")
+    sys.stdout.write("\n")
+
+def predict(enc_inp, sess, encoder_decoder, top_indexs, dec_states):
+    dec_inp = np.zeros((1,1))
+    dec_inp[0][0] = 2 # 2 is the start token
+    index_output = []
+
+    feed_dict = {
+    encoder_decoder.enc_inputs: enc_inp,
+    encoder_decoder.dec_inputs: dec_inp
+    }
+
+    indexs, state = sess.run([top_indexs, dec_states], feed_dict)
+    index_output.append(indexs[0])
+
+    while True:
+        dec_inp[0][0] = indexs[0]
+
+        feed_dict = {
+        encoder_decoder.enc_states: state,
+        encoder_decoder.dec_inputs: dec_inp
+        }
+
+        indexs, state = sess.run([top_indexs, dec_states], feed_dict)
+        if indexs[0] == 3: # if meet EOF
+            break
+        index_output.append(indexs[0])
+
+    return index_output
+
+def translate(token_list, reader):
+    enc = []
+    for token in token_list:
+        if token in reader.dict:
+            enc.append(reader.dict[token])
+        else:
+            enc.append(reader.dict["[unk]"])
+    return enc

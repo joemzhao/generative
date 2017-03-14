@@ -46,17 +46,17 @@ class seq2seq(object):
         self.cell = tf.nn.rnn_cell.MultiRNNCell(cells=self.cell_list, state_is_tuple=True)
 
     def _seq2seq(self):
-        _, enc_states = tf.nn.dynamic_rnn(
+        _, self.enc_states = tf.nn.dynamic_rnn(
         cell=self.cell,
         inputs=self.enc_inputs_emb,
         dtype=tf.float32,
         time_major=True,
         scope="encoder")
 
-        dec_outputs, dec_states = tf.nn.dynamic_rnn(
+        self.dec_outputs, self.dec_states = tf.nn.dynamic_rnn(
         cell=self.cell,
         inputs=self.dec_inputs_emb,
-        initial_state=enc_states,
+        initial_state=self.enc_states,
         dtype=tf.float32,
         time_major=True,
         scope="decoder"
@@ -71,8 +71,8 @@ class seq2seq(object):
                           stddev=self.truncated_std), name="softmax_w")
         softmax_b = tf.Variable(tf.constant(shape=[self.vocab_size], value=0.1), name="softmax_b")
 
-        dec_outputs = tf.reshape(dec_outputs, [-1, self.output_size], name="dec_outputs")
-        dec_proj = tf.matmul(dec_outputs, project_w) + project_b
+        self.dec_outputs = tf.reshape(self.dec_outputs, [-1, self.output_size], name="dec_outputs")
+        dec_proj = tf.matmul(self.dec_outputs, project_w) + project_b
         logits = tf.nn.log_softmax(tf.matmul(dec_proj, softmax_w) + softmax_b, name="logits")
 
         #loss function
@@ -80,4 +80,4 @@ class seq2seq(object):
         self.total_loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits, flat_targets)
         self.avg_loss = tf.reduce_mean(self.total_loss)
 
-        return self.total_loss, self.avg_loss
+        return self.total_loss, self.avg_loss, logits, self.enc_states, self.dec_outputs, self.dec_states
