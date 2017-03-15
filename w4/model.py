@@ -32,18 +32,18 @@ class seq2seq(object):
     def initialize_input_layers(self):
         self.cell_list = []
         for i in xrange(self.num_layers):
-             single_cell = tf.nn.rnn_cell.LSTMCell(
+             single_cell = tf.contrib.rnn.LSTMCell(
              num_units=self.hidden_size,
              num_proj=self.projection_size,
              state_is_tuple=True
              )
         # add dropout wrapper
         if i<self.num_layers-1 or self.num_layers ==1:
-            single_cell = tf.nn.rnn_cell.DropoutWrapper(cell=single_cell,
+            single_cell = tf.contrib.rnn.DropoutWrapper(cell=single_cell,
             output_keep_prob=self.keep_prob)
 
         self.cell_list.append(single_cell)
-        self.cell = tf.nn.rnn_cell.MultiRNNCell(cells=self.cell_list, state_is_tuple=True)
+        self.cell = tf.contrib.rnn.MultiRNNCell(cells=self.cell_list, state_is_tuple=True)
 
     def _seq2seq(self):
         _, self.enc_states = tf.nn.dynamic_rnn(
@@ -77,7 +77,7 @@ class seq2seq(object):
 
         #loss function
         flat_targets = tf.reshape(self.targets, [-1])
-        self.total_loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits, flat_targets)
+        self.total_loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=flat_targets)
         self.avg_loss = tf.reduce_mean(self.total_loss)
 
         return self.total_loss, self.avg_loss, logits, self.enc_states, self.dec_outputs, self.dec_states
