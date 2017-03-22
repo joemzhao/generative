@@ -41,7 +41,7 @@ class compressor(object):
 
 if __name__ == "__main__":
 
-    N = 300 # candidates
+    N = 3 # candidates
     E = 5 # embedding dimension
     T = 10 # time dependency dimension
 
