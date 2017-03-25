@@ -62,9 +62,10 @@ class naive_predictors(object):
         prob_list = self.sess.run(self.probs, feed_dict)
 
         cdf = np.cumsum(prob_list)
-
         while len(candidates)<self.max_seq_len:
             idx = int(np.searchsorted(cdf, np.random.rand(1) * 1.))
+            while idx in candidates:
+                idx = int(np.searchsorted(cdf, np.random.rand(1) * 1.))
             candidates.append(idx)
 
         return candidates
