@@ -40,8 +40,9 @@ def build_input(sequence):
 
 def print_sentence(index_list, reader):
     for index in index_list:
-        sys.stdout.write(reader.id_dict[index])
-        sys.stdout.write(" ")
+        if index < 20525:
+            sys.stdout.write(reader.id_dict[index])
+            sys.stdout.write(" ")
     sys.stdout.write("\n")
 
 def predict(enc_inp, sess, encoder_decoder, top_indexs, dec_states):

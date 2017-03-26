@@ -3,6 +3,7 @@ import tensorflow as tf
 import os
 import re
 import sys
+import json
 
 import beam_predictor
 import naive_predictors
@@ -115,9 +116,18 @@ if interactive:
         print (" ")
 
 total_emb = encoder_decoder.get_emb(sess)
+np.save("emb/total_emb.npy", total_emb)
+print "Embedding of vocabulary saved."
 # print total_emb.shape #(20525, 256)
 candidate_top = 20
+argmax_list = []
+weighted_pick_list = []
+beam_search_list = []
+counter = 0
 while True:
+    if counter %10 == 0:
+        print "Finished %s rows." %counter
+    counter += 1
     try:
         data, idx = reader.next_batch()
         enc_inp, dec_inp, dec_tar = helpers.data_processing(data,
@@ -128,27 +138,31 @@ while True:
 
         naives = naive_predictors.naive_predictors(probs=probs, enc_inp=enc_inp, dec_states=dec_states, encoder_decoder=encoder_decoder, max_seq_len=max_seq_len, sess=sess, signal=None)
 
-        print "========= Evaluating results ========== "
-        sys.stdout.write("src: ")
-        helpers.print_sentence(data[0][0], reader)
-        sys.stdout.write("tar: ")
-        helpers.print_sentence(data[0][1], reader)
-
-        sys.stdout.write("res (beam search): ")
-        helpers.print_sentence(response, reader)
-
-        sys.stdout.write("res (beam candidates): ")
+        beam_search_list.append([data[0][0], data[0][1], response])
         for idx, item in enumerate(A_):
-            if idx <= candidate_top:
-                helpers.print_sentence(item, reader)
+            if idx < candidate_top:
+                beam_search_list.append([data[0][0], data[0][1], item])
 
-        sys.stdout.write("res (argmax): ")
-        helpers.print_sentence(naives.arg_max(),reader)
+        argmax_list.append([data[0][0], data[0][1], naives.arg_max()])
 
-        sys.stdout.write("res (weighted_pick): ")
-        helpers.print_sentence(naives.weighted_pick(),reader)
+        # helpers.print_sentence(naives.weighted_pick(),reader)
+        weighted_pick_list.append([data[0][0], data[0][1], naives.weighted_pick()])
 
-    except KeyboardInterrupt:
+    except Exception:
+        print "Finish storing, writing.."
+        with open("candidates/argmax_list.txt", "w") as f:
+            f.write(json.dumps(argmax_list) + "\n")
+        f.close()
+
+        with open("candidates/weighted_pick_list.txt", "w") as f:
+            f.write(json.dumps(weighted_pick_list) + "\n")
+        f.close()
+
+        with open("candidates/beam_search_list.txt", "w") as f:
+            for item in beam_search_list:
+                f.write("%s\n" % item)
+        f.close()
+
         sess.close()
         print "\n session closed"
         break

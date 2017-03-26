@@ -48,7 +48,10 @@ class naive_predictors(object):
     def weighted_pick(self):
         '''
         add randomness to the pick-up procedure. softer than argmax
+        note that to get non-replicate results this method may get
+        stucked. We try 20 times maxly.
         '''
+        try_times = 20
         sequence = [2] # starting token
         if self.signal != None:
             sequence.append(signal)
@@ -61,11 +64,14 @@ class naive_predictors(object):
         }
         prob_list = self.sess.run(self.probs, feed_dict)
 
+        timer = 0
         cdf = np.cumsum(prob_list)
         while len(candidates)<self.max_seq_len:
             idx = int(np.searchsorted(cdf, np.random.rand(1) * 1.))
-            while idx in candidates:
+            while idx in candidates and timer <=try_times:
+                timer += 1
                 idx = int(np.searchsorted(cdf, np.random.rand(1) * 1.))
             candidates.append(idx)
+            timer = 0
 
         return candidates
