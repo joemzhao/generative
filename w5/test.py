@@ -72,7 +72,7 @@ cwd = os.getcwd()
 saver.restore(sess, cwd+"/"+save_path+"/model.ckpt")
 print "model restored"
 
-interactive = True
+interactive = False
 if interactive:
     print("\n--------------------------")
     print("--Interactive mode is on--")
@@ -90,7 +90,7 @@ if interactive:
         sequence = helpers.translate(token_list, reader)
         enc_inp = helpers.build_input(sequence[::-1])
 
-        response = beam_predictor.beam_predictor(enc_inp, encoder_decoder=encoder_decoder,
+        response, A_ = beam_predictor.beam_predictor(enc_inp, encoder_decoder=encoder_decoder,
         top_value=top_value, top_index=top_index, dec_states=dec_states , top_k=top_k,
         max_seq_len=max_seq_len, sess=sess, probs=probs, signal=None)
 
@@ -102,6 +102,10 @@ if interactive:
         sys.stdout.write("res (beam search): ")
         helpers.print_sentence(response, reader)
 
+        sys.stdout.write("res (beam candidates): ")
+        for item in A_:
+            helpers.print_sentence(item, reader)
+
         sys.stdout.write("res (argmax): ")
         helpers.print_sentence(naives.arg_max(),reader)
 
@@ -109,3 +113,42 @@ if interactive:
         helpers.print_sentence(naives.weighted_pick(),reader)
 
         print (" ")
+
+total_emb = encoder_decoder.get_emb(sess)
+# print total_emb.shape #(20525, 256)
+candidate_top = 20
+while True:
+    try:
+        data, idx = reader.next_batch()
+        enc_inp, dec_inp, dec_tar = helpers.data_processing(data,
+                                                    buckets[idx], batch_size)
+        response, A_ = beam_predictor.beam_predictor(enc_inp, encoder_decoder=encoder_decoder,
+        top_value=top_value, top_index=top_index, dec_states=dec_states , top_k=top_k,
+        max_seq_len=max_seq_len, sess=sess, probs=probs, signal=None)
+
+        naives = naive_predictors.naive_predictors(probs=probs, enc_inp=enc_inp, dec_states=dec_states, encoder_decoder=encoder_decoder, max_seq_len=max_seq_len, sess=sess, signal=None)
+
+        print "========= Evaluating results ========== "
+        sys.stdout.write("src: ")
+        helpers.print_sentence(data[0][0], reader)
+        sys.stdout.write("tar: ")
+        helpers.print_sentence(data[0][1], reader)
+
+        sys.stdout.write("res (beam search): ")
+        helpers.print_sentence(response, reader)
+
+        sys.stdout.write("res (beam candidates): ")
+        for idx, item in enumerate(A_):
+            if idx <= candidate_top:
+                helpers.print_sentence(item, reader)
+
+        sys.stdout.write("res (argmax): ")
+        helpers.print_sentence(naives.arg_max(),reader)
+
+        sys.stdout.write("res (weighted_pick): ")
+        helpers.print_sentence(naives.weighted_pick(),reader)
+
+    except KeyboardInterrupt:
+        sess.close()
+        print "\n session closed"
+        break

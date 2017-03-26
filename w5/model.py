@@ -21,11 +21,11 @@ class seq2seq(object):
         self.enc_inputs = tf.placeholder(tf.int32, shape=(None, self.batch_size), name="enc_inputs")
         self.targets = tf.placeholder(tf.int32, shape=(None, self.batch_size), name="targets")
         self.dec_inputs = tf.placeholder(tf.int32, shape=(None, self.batch_size), name="dec_inputs")
-        emb_weights = tf.Variable(tf.truncated_normal([self.vocab_size, self.embedding_size], stddev=self.truncated_std), name="emb_weights")
+        self.emb_weights = tf.Variable(tf.truncated_normal([self.vocab_size, self.embedding_size], stddev=self.truncated_std), name="emb_weights")
 
-        self.enc_inputs_emb = tf.nn.embedding_lookup(emb_weights, self.enc_inputs,
+        self.enc_inputs_emb = tf.nn.embedding_lookup(self.emb_weights, self.enc_inputs,
                                                          name="enc_inputs_emb" )
-        self.dec_inputs_emb = tf.nn.embedding_lookup(emb_weights, self.dec_inputs,
+        self.dec_inputs_emb = tf.nn.embedding_lookup(self.emb_weights, self.dec_inputs,
                                                          name="dec_inputs_emb")
         self.initialize_input_layers()
 
@@ -81,3 +81,6 @@ class seq2seq(object):
         self.avg_loss = tf.reduce_mean(self.total_loss)
 
         return self.total_loss, self.avg_loss, logits, self.enc_states, self.dec_outputs, self.dec_states, probs
+
+    def get_emb(self, sess):
+        return sess.run(self.emb_weights)

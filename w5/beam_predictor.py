@@ -35,6 +35,7 @@ def beam_predictor(enc_inp, encoder_decoder, top_value,
     # print candidates
     best_sequence = None
     highest_score = -sys.maxint-1
+    A_ = []
 
     while True:
         for i in xrange(len(candidates)):
@@ -70,11 +71,13 @@ def beam_predictor(enc_inp, encoder_decoder, top_value,
             if options[i][0] > highest_score:
                 candidates.append(options[i])
         # print candidates
-
+        for item in candidates:
+            A_.append(item[1])
         options = [] # clean up
         if len(candidates) == 0:
             break
 
     if signal:
         best_sequence = [signal] + best_sequence # output sequence input by users when running
-    return best_sequence[:-1] # remove eof
+
+    return best_sequence[:-1], A_ # remove eof
