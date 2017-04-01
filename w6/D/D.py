@@ -65,7 +65,7 @@ class LSTM_(object):
                     tf.get_variable_scope().reuse_variables()
                 (lstm_output, state) = self.cells(inputs[:, idx, :], state)
                 outputs.append(lstm_output)
-        # outputs = outputs * self.mask_x[:, :, None]
+        outputs = outputs * self.mask_x[:, :, None]
 
         ''' mean pooling layer '''
         with tf.name_scope("mean_pooling_layer"):
@@ -83,7 +83,9 @@ class LSTM_(object):
                 [self.class_num],
                 dtype=tf.float32
             )
+
             self.logits = tf.matmul(outputs, softmax_w) + softmax_b
+
         self.make_predict()
 
     def make_predict(self):
