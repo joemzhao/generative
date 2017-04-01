@@ -3,8 +3,9 @@ import numpy as np
 import os
 import sys
 
-import loaders.reader
-import utils.nn_config.D_config
+# from utils.nn_config import D_config
+# from loaders.reader import data_reader
+
 
 class LSTM_(object):
     '''
@@ -25,7 +26,7 @@ class LSTM_(object):
 
     def init_placeholders(self):
         self.input_data = tf.placeholder(tf.int32, [None, self.max_len])
-        self.target = tf.placeholder(tf.int32, [None])
+        self.target = tf.placeholder(tf.int64, [None])
         self.mask_x = tf.placeholder(tf.float32, [self.max_len, None])
         self.init_layers()
 
@@ -36,14 +37,13 @@ class LSTM_(object):
 
         '''Embdedding Layer'''
         with tf.device("/cpu:0"), tf.name_scope("embed_layer"):
-            self.Embedding =
-                tf.get_variable("Embedding", [self.vocab_size, self.emb_dim], dtype=tf.float32)
+            self.Embedding = tf.get_variable("Embedding", [self.vocab_size, self.emb_dim], dtype=tf.float32)
             inputs = tf.nn.embedding_lookup(self.Embedding, self.input_data)
 
         '''Define LSTM cells and make layers '''
         single_cell = tf.contrib.rnn.LSTMCell(
-            num_units=self.hidden_dim
-            forget_bias=0.
+            num_units=self.hidden_dim,
+            forget_bias=0.,
             state_is_tuple=True
         )
         if self.keep_prob<1:
@@ -69,7 +69,7 @@ class LSTM_(object):
 
         ''' mean pooling layer '''
         with tf.name_scope("mean_pooling_layer"):
-            outputs = tf.reduce_sum(output, 0)/(tf.reduce_sum(self.mask_x, 0)[:, None])
+            outputs = tf.reduce_sum(outputs, 0)/(tf.reduce_sum(self.mask_x, 0)[:, None])
 
         ''' soft max layer and outputs results '''
         with tf.name_scope("softmax_and_output_layer"):
@@ -91,8 +91,8 @@ class LSTM_(object):
         Make predictions. Calculate loss and accuracy
         '''
         self.loss = tf.nn.sparse_softmax_cross_entropy_with_logits(
-            self.logits,
-            self.target
+            logits=self.logits,
+            labels=self.target
         )
         self.cost = tf.reduce_mean(self.loss)
 
@@ -101,8 +101,6 @@ class LSTM_(object):
         self.correct_nums = tf.reduce_sum(tf.cast(correct_prediction, tf.float32))
         self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32), name="accuracy")
 
-        self.loss_summary = tf.summary.scalar("loss", self.cost)
-        self.accu_summary = tf.summary.scalar("accuracy", self.accuracy)
         self.step_()
 
     def step_(self):
@@ -114,20 +112,6 @@ class LSTM_(object):
         clip_gradients = [(tf.clip_by_norm(grad, 5.), var) for grad, var in gradients]
         self.train_op = optimizer.apply_gradients(clip_gradients)
 
-        '''
-        Tracking the gradients and loss
-        '''
-        tvars = tf.trainable_variables()
-        grad_summaries = []
-        for g, v in zip(gradients, tvars):
-            if g is not None:
-                grad_hist_summary = tf.summary.histogram("{}/grad/hist".format(v.name), g)
-                sparsity_summary = tf.summary.scalar("{}/grad/sparsity".format(v.name), tf.nn.zero_fraction(g))
-                grad_summaries.append(grad_hist_summary)
-                grad_summaries.append(sparsity_summary)
-        self.grad_summaries_merged = tf.summary.merge(grad_summaries)
-        self.summary = tf.summary.merge([
-            self.loss_summary,
-            self.accuracy_summary,
-            self.grad_summaries_merged
-        ])
+if __name__ == "__main__":
+    lstm = LSTM_(emb_dim=10, hidden_dim=100,
+                       vocab_size=2000, batch_size=128, lr=0.01, num_layers=1, keep_prob=.95, max_len=20)
