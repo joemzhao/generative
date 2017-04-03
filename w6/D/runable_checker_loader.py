@@ -86,6 +86,28 @@ class dataloader(object):
     def reset_pointer(self):
         self.pointer = 0
 
+    def create_test_batch(self):
+        self.num_test_batch = int(len(self.test_label)/self.batch_size)
+        print "There are %d batches created for test the model!" % self.num_test_batch
+
+        self.test_sentence = self.test_sentence[:self.num_test_batch*self.batch_size]
+        self.test_label = self.test_label[:self.num_test_batch*self.batch_size]
+
+        self.sequence_test_batch = np.split(self.test_sentence, self.num_test_batch, 0)
+        self.label_test_batch = np.split(self.test_label, self.num_test_batch, 0)
+        self.test_pointer = 0
+
+    def next_test_batch(self):
+        ret_seq = self.sequence_test_batch[self.test_pointer]
+        ret_lab = self.label_test_batch[self.test_pointer]
+        self.test_pointer = (self.test_pointer + 1) % self.num_test_batch
+        return ret_seq, ret_lab
+
+    def reset_test_pointer(self):
+        self.test_pointer = 0
+
+
+
 if __name__ == "__main__":
     true = '../datasets/checking_D/true_D.txt'
     fake = '../datasets/checking_D/fake_D.txt'

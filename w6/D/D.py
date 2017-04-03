@@ -9,7 +9,7 @@ import sys
 
 class LSTM_(object):
     '''
-    An LSTM used as the discriminator within the GAN model.
+    A LSTM used as the discriminator within the GAN model.
     '''
     def __init__(self, emb_dim, hidden_dim,
                        vocab_size, batch_size, lr, num_layers, keep_prob, max_len):
