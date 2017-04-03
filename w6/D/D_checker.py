@@ -35,11 +35,11 @@ print "NN model build."
 count = 0
 epoch_loss = 0.
 epoch_count = 0
-EPOCH = 10
+EPOCH = 2
 losses = []
 saver = tf.train.Saver()
 
-for epc in xrange(EPOCH*reader.num_batches):
+for it in xrange(EPOCH*reader.num_batches):
     sequence_, idx_ = reader.next_batch()
     feed_dic = {
         nn.input_data: sequence_,
@@ -52,19 +52,15 @@ for epc in xrange(EPOCH*reader.num_batches):
     count += 1
     epoch_count += 1
 
-    # print "--- This is prediction ---"
-    # print sess.run([nn.prediction], feed_dic)
-    # print "--- This is target ---"
-    # print sess.run([nn.target], feed_dic)
-    # print "======================"
-
     if count % reader.num_batches == 0:
-        print "loss: "+str(avg_loss)+" accu "+str(acu)+" @ epoch: "+str(epc)+" count: "+ str(epoch_count * BATCH_SIZE)
+        print "loss: "+str(avg_loss)+" accu "+str(acu)+" @ iter_idx: "+str(it)+" count: "+ str(epoch_count * BATCH_SIZE)
 
 print "===== finished training the model ===== "
 print "Start testing..."
 reader.create_test_batch()
 
+count = 0
+epoch_count = 0
 for t_batch in xrange(reader.num_test_batch):
     sequence_, idx_ = reader.next_test_batch()
     feed_dic = {
@@ -80,7 +76,7 @@ for t_batch in xrange(reader.num_test_batch):
     epoch_count += 1
 
     if count % 10 == 0:
-        print "loss: "+str(avg_loss)+" accu "+str(acu)+" @ epoch: "+str(epc)+" count: "+ str(epoch_count * BATCH_SIZE)
+        print "loss: "+str(avg_loss)+" accu "+str(acu)+" @ test_batch: "+str(t_batch)+" count: "+ str(epoch_count * BATCH_SIZE)
 
 
 sess.close()
