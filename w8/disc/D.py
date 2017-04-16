@@ -4,7 +4,7 @@ import tensorflow as tf
 import numpy as np
 
 class discriminator(object):
-    def __init__(self, config, scope_name="discriminator", training=True):
+    def __init__(self, config, scope_name="discriminator", is_training=True):
         self.scope_name = scope_name
         with tf.variable_scope(self.scope_name):
             self.keep_prob = config.keep_prob
