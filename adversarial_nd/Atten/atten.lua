@@ -502,8 +502,9 @@ function model:readModel()
     file:close();
     for i=1,#self.Modules do
         local parameter,_=self.Modules[i]:parameters()
+        -- print(parameter)
         for j=1,#parameter do
-            parameter[j]:copy(model_params[i][j]);
+          parameter[j]:copy(model_params[i][j]);
         end
     end
     print("read model done")
@@ -598,32 +599,3 @@ function model:train()
 end
 
 return model
--- para = {
---   batch_size = 128,
---   dimension = 128,
---   dropout = 0.2,
---   train_file = "../data/t_given_s_train.txt",
---   dev_file = "../data/t_given_s_dev.txt",
---   test_file = "../data/t_given_s_test.txt",
---   init_weight = 0.1,
---   alpha = 1,
---   start_halve = 6,
---   max_length = 100,
---   vocab_source = 25010,
---   vocab_target = 25010,
---   thres = 5,
---   max_iter = 8,
---   source_max_length = 50,
---   target_max_length = 50,
---   layers = 2,
---   saveFolder = "save",
---   reverse = false,
---   saveModel = false,
---   dictPath = "../data/movie_25000",
---   output_file = "output",
---   save_params_file = "params",
---   save_prefix = "test_single"
--- }
---
--- model:Initial(para)
--- model:train()

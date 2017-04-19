@@ -102,23 +102,4 @@ function Data:read_train(open_pos_train_file, open_neg_train_file)
   return End, labels, Words_s, Mask_s, Left_s, Padding_s
 end
 
--- for testing the data iterator --
-pos_path = "../data/s_given_t_train.txt"
-neg_path = "../data/s_given_t_test.txt"
-
-open_pos_train = io.open(pos_path, "r")
-open_neg_train = io.open(neg_path, "r")
-
-para = {batch_size = 4, dialogue_length = 2}
-
-Data:Initial(para)
-e, lab, wds, msks, lefts, pad = Data:read_train(open_neg_train, open_pos_train)
-print("--- labels ---")
-print(lab)
-print("--- words ---")
-print(wds[1])
-print("--- masks ---")
-print(msks[2][1])
-
-open_pos_train:close()
-open_neg_train:close()
+return Data

@@ -1,12 +1,12 @@
 require "nn"
 require "nngraph"
-Data = require "data"
-
+local Data = require("./data")
 local model = {}
 model.Data = Data
 
 function model:Initial(params)
   print("Initialising the discriminator...")
+  print(params)
   self.Data:Initial(params)
   self.params = params
   self.lstm_word = self:lstm_(true)
@@ -29,6 +29,45 @@ function model:Initial(params)
     self.output = io.open(self.params.output_file, "w")
   end
   print("Finish initialising the model...")
+end
+
+------------ None training helpers -------------
+--@override copy(A)
+local function copy(A)
+  local B
+  if A:nDimension() == 1 then
+    B = torch.Tensor(A:size(1))
+  end
+  if A:nDimension() == 2 then
+    B = torch.Tensor(A:size(1), A:size(2))
+  end
+  if A:nDimension() == 3 then
+    B = torch.Tensor(A:size(1), A:size(2), A:size(3))
+  end
+  B:copy(A)
+  return B
+end
+
+--@override clone_(A)
+function model:clone_(A)
+  local B = {}
+  for i = 1, #A do
+    if A[i]:nDimension() == 2 then
+      B[i] = torch.Tensor(A[i]:size(1), A[i]:size(2))
+    else
+      B[i] = torch.Tensor(A[i]:size(1))
+    end
+    B[i]:copy(A[i])
+  end
+  return B
+end
+
+function model:g_cloneManyTimes(net, T)
+  local clones = {}
+  for t = 1, T do
+    clones[t] = net:clone("weight", "bias", "gradWeight", "gradBias")
+  end
+  return clones
 end
 
 ------------ Behaviors -------------
@@ -369,47 +408,16 @@ function model:lstm_(isWordLevel)
   return module
 end
 
------------- None training helpers -------------
---@override copy(A)
-local function copy(A)
-  local B
-  if A:nDimension() == 1 then
-    B = torch.Tensor(A:size(1))
-  end
-  if A:nDimension() == 2 then
-    B = torch.Tensor(A:size(1), A:size(2))
-  end
-  if A:nDimension() == 3 then
-    B = torch.Tensor(A:size(1), A:size(2), A:size(3))
-  end
-  B:copy(A)
-  return B
-end
-
---@override clone_(A)
-function model:clone_(A)
-  local B = {}
-  for i = 1, #A do
-    if A[i]:nDimension() == 2 then
-      B[i] = torch.Tensor(A[i]:size(1), A[i]:size(2))
-    else
-      B[i] = torch.Tensor(A[i]:size(1))
-    end
-    B[i]:copy(A[i])
-  end
-  return B
-end
-
-function model:g_cloneManyTimes(net, T)
-  local clones = {}
-  for t = 1, T do
-    clones[t] = net:clone("weight", "bias", "gradWeight", "gradBias")
-  end
-  return clones
+local function script_path()
+  local str = debug.getinfo(2, "S").source:sub(2)
+  return str:match(".*/")
 end
 
 ------------ Administrative helpers -------------
 function model:readModel()
+  -- print("This is the path")
+  -- print(self.params.model_file)
+  -- print(script_path())
   local file = torch.DiskFile(self.params.model_file, "r"):binary()
   local model_params = file:readObject()
   file:close()
@@ -436,26 +444,7 @@ function model:saveParams()
   local file = torch.DiskFile(self.params.save_params_file, "w"):binary()
   file:writeObject(self.params)
   file:close()
+  print("model saved!")
 end
 
------------- Temporary evaluating -------------
-para = {
-        batch_size = 2,
-        dialogue_length = 2,
-        dimension = 10,
-        init_weight = 1,
-        layers = 1,
-        vocab_size = 25010,
-        source_max_length = 50,
-        output_file = "",
-        pos_train_file = "../data/t_given_s_train.txt",
-        neg_train_file = "../data/decoded_train.txt",
-        pos_test_file = "../data/t_given_s_test.txt",
-        neg_test_file = "../data/decoded_test.txt",
-        alpha = 0.01,
-        start_halve = 6,
-        thres = 5,
-        max_iter = 6
-}
-model:Initial(para)
-model:train()
+return model
