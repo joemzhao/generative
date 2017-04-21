@@ -2,7 +2,6 @@ require "torchx"
 local stringx = require('pl.stringx')
 
 local Data={}
-
 local function reverse(input)
     local length=input:size(2);
     local output=torch.Tensor(1,length);
@@ -96,17 +95,15 @@ function Data:read_train(open_train_file)
     end
     Words_s,Masks_s,Left_s,Padding_s=self:get_batch(Source,true)
     Words_t,Masks_t,Left_t,Padding_t=self:get_batch(Target,false)
+    -- print("Some sample results")
+    -- print(Words_s)
+    -- print(Words_t)
+    -- print(Masks_s)
+    -- Mask_s and Mask_t are for source and target respectively.
+    -- The dimension are matching. E.g. If the source sentence length is 10, then
+    -- Mask_s corresponses 10 dimension, each dimension indicates which position within
+    -- this batch is padded in this position (of this sentences.)
     return End,Words_s,Words_t,Masks_s,Masks_t,Left_s,Left_t,Padding_s,Padding_t,Source,Target
 end
 
 return Data
--- para = {
---   batch_size = 128,
---   dimension = 10,
---   dropout = 0.2,
---   train_file = "../data/t_given_s_train.txt",
---   vocab_source = 25010,
---   vocab_target = 25010,
---   reverse = false
--- }
--- Data:Initial(para)

@@ -263,19 +263,19 @@ function model:lstm_source_()
 end
 
 function model:model_forward()
+    -- print("This is self.Word_s")
+    -- self.context -- batch_size x sentence_length x embedding
     self.context=torch.Tensor(self.Word_s:size(1),self.Word_s:size(2),self.params.dimension);
     self.target_embedding={}
     self.softmax_h={}
     local output;
-
     local timer=torch.Timer();
-
-    for t=1,self.Word_s:size(2) do
+    for t=1,self.Word_s:size(2) do -- for each word
         local input={};
         if t==1 then
             for ll=1,self.params.layers do
-                table.insert(input,torch.zeros(self.Word_s:size(1),self.params.dimension));
-                table.insert(input,torch.zeros(self.Word_s:size(1),self.params.dimension));
+                table.insert(input,torch.zeros(self.Word_s:size(1),self.params.dimension)); -- initialization for h
+                table.insert(input,torch.zeros(self.Word_s:size(1),self.params.dimension)); -- initialization for c
             end
         else
             if self.mode=="train" then
@@ -283,20 +283,21 @@ function model:model_forward()
             else input=self:clone_(output);
             end
         end
-        table.insert(input,self.Word_s:select(2,t));
+        table.insert(input,self.Word_s:select(2,t)); -- select t-th element in axis 2
+        -- after this input = {batch_size x dimension, batch_size x dimension (x2), batch_size(select out)}
         if self.mode=="train" then
             self.lstms_s[t]:training()
             output=self.lstms_s[t]:forward(input);
         else self.lstms_s[1]:evaluate()
             output=self.lstms_s[1]:forward(input);
         end
-        if self.Mask_s[t]:nDimension()~=0 then
+        if self.Mask_s[t]:nDimension()~=0 then -- if we have mask. e.g we have padding
             for i=1,#output do
                 output[i]:indexCopy(1,self.Mask_s[t],torch.zeros(self.Mask_s[t]:size(1),self.params.dimension));
             end
         end
         if self.mode=="train" then
-            self.store_s[t]=self:clone_(output);
+            self.store_s[t]=self:clone_(output); -- refresh the stored states
         elseif t==self.Word_s:size(2) then
             self.last=output;
         end
@@ -304,6 +305,7 @@ function model:model_forward()
         self.context[{{},t}]:copy(output[2*self.params.layers-1]);
     end
     if self.mode~="decoding" then
+      --- FOR training the target_lstm, decoder.
         for t=1,self.Word_t:size(2)-1 do
             local lstm_input={};
             if t==1 then
@@ -352,9 +354,10 @@ end
 function model:model_backward()
     local d_source=torch.zeros(self.context:size(1),self.context:size(2),self.context:size(3));
     local d_output={};
+
     for ll=1,self.params.layers do
-        table.insert(d_output,torch.zeros(self.Word_s:size(1),self.params.dimension));
-        table.insert(d_output,torch.zeros(self.Word_s:size(1),self.params.dimension));
+        table.insert(d_output,torch.zeros(self.Word_s:size(1),self.params.dimension)); -- for h in decoder
+        table.insert(d_output,torch.zeros(self.Word_s:size(1),self.params.dimension)); -- for c in decoder
     end
     local sum_err=0;
     local total_num=0;
@@ -363,7 +366,7 @@ function model:model_backward()
         local softmax_output=self.softmax:forward({self.softmax_h[t],current_word});
         local err=softmax_output[1];
         sum_err=sum_err+err[1]
-        total_num=total_num+self.Left_t[t+1]:size(1);
+        total_num=total_num+self.Left_t[t+1]:size(1); -- total number of dialog
         if self.mode=="train" then
             local dh=self.softmax:backward({self.softmax_h[t],current_word},{torch.Tensor({1}),torch.Tensor(softmax_output[2]:size()):fill(0)})
             d_store_t=self:clone_(d_output);
@@ -419,6 +422,7 @@ function model:model_backward()
 end
 
 function model:test()
+    local batch_index = 0
     local open_train_file
     if self.mode=="dev" then
         open_train_file=io.open(self.params.dev_file,"r")
@@ -431,23 +435,31 @@ function model:test()
     while End==0 do
         End,self.Word_s,self.Word_t,self.Mask_s,self.Mask_t,self.Left_s,self.Left_t,self.Padding_s,self.Padding_t=
             self.Data:read_train(open_train_file)
+
         if #self.Word_s==0 or End==1 then
             break;
         end
         if (self.Word_s:size(2)<self.params.source_max_length and self.Word_t:size(2)<self.params.target_max_length) then
+            batch_index =  batch_index + 1
+            if math.fmod(batch_index, 20) == 0 then print(batch_index) end
             self.mode="test"
             self.Word_s=self.Word_s;
             self.Word_t=self.Word_t;
             self.Padding_s=self.Padding_s;
             self:model_forward()
             local sum_err,total_num=self:model_backward()
+            -- sum_err, NLL error from this batch
+            -- total, total number of dialog within this batch
             sum_err_all=sum_err_all+sum_err
             total_num_all=total_num_all+total_num;
         end
     end
     open_train_file:close()
-    print("perp ".. 1/torch.exp(-sum_err_all/total_num_all));
+    print("=>Sum of all error:" ..sum_err_all)
+    print("=>Total number: "..total_num_all)
+    print("=>Perp ".. 1/torch.exp(-sum_err_all/total_num_all));
     if self.output~=nil then
+        print("The standard perp is "..1/torch.exp(-sum_err_all/total_num_all).."\n")
         self.output:write("standard perp ".. 1/torch.exp(-sum_err_all/total_num_all).."\n")
     end
 end
@@ -530,6 +542,7 @@ function model:train()
     local batch_n=0
     while true do
         self.iter=self.iter+1;
+        print("------------ New Epoch -----------")
         print("iter  "..self.iter)
         local time_string=os.date("%c")
         print(time_string)
@@ -563,6 +576,7 @@ function model:train()
                 train_this_batch=true;
             end
             if train_this_batch then
+                if math.fmod(batch_n, 2) == 0 then print("Training on batch: "..batch_n) end
                 self.mode="train"
                 local time1=timer:time().real;
                 self.Word_s=self.Word_s;
@@ -580,19 +594,12 @@ function model:train()
         if self.params.saveModel then
             self:save()
         end
-        local time2=timer:time().real;
-        print(time2-time1)
-        --[[
-        local file_name="save/"..iter;
-        local file=torch.DiskFile(file_name,"w"):binary();
-        file:writeObject(paramx);
-        file:close();
-        --]]
+        -- local time2=timer:time().real;
+        -- print("Time consumed is "..(time2-time1))
         if self.iter==self.params.max_iter then
             break;
         end
     end
-    --self:save()
     if self.output~=nil then
         self.output:close()
     end
