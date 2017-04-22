@@ -70,6 +70,7 @@ function Data:read_train(open_pos_train_file, open_neg_train_file)
   end
 
   local i = 0
+  local line_idx = 0
   while 1==1 do
     i = i + 1
     local str = open_pos_train_file:read("*line")

@@ -6,7 +6,6 @@ model.Data = Data
 
 function model:Initial(params)
   print("Initialising the discriminator...")
-  print(params)
   self.Data:Initial(params)
   self.params = params
   self.lstm_word = self:lstm_(true)
@@ -102,17 +101,19 @@ end
 
 function model:model_forward()
   self.last = {}
+  -- #self.Word_s == 2, Q and A
+  -- within Q (or A) -> batch_size x length of sentence
   for i = 1, #self.Word_s do
-    for t = 1, self.Word_s[i]:size(2) do
+    for t = 1, self.Word_s[i]:size(2) do  -- word_steps within one sentence
       local input = {}
-      if t == 1 then
+      if t == 1 then -- the first word
         for ll = 1, self.params.layers do
-          table.insert(input, torch.zeros(self.Word_s[i]:size(1), self.params.dimension))
-          table.insert(input, torch.zeros(self.Word_s[i]:size(1), self.params.dimension))
+          table.insert(input, torch.zeros(self.Word_s[i]:size(1), self.params.dimension)) -- for h
+          table.insert(input, torch.zeros(self.Word_s[i]:size(1), self.params.dimension)) -- for c
         end
       else
         if self.mode == "train" then
-          input = self:clone_(self.store_word[i][t-1])
+          input = self:clone_(self.store_word[i][t-1]) -- batch_size x dimension (Q)(A)
         else
           input = self:clone_(output)
         end
@@ -131,13 +132,13 @@ function model:model_forward()
         end
       end
       if self.mode == "train" then
-        self.store_word[i][t] = self:clone_(output)
+        self.store_word[i][t] = self:clone_(output) -- iterate
       end
       self.last[i] = output[2*self.params.layers-1]
     end
   end
 
-  for t = 1, #self.Word_s do
+  for t = 1, #self.Word_s do -- train on sentence
     local input = {}
     if t == 1 then
       for ll = 1, self.params.layers do
@@ -167,8 +168,7 @@ function model:model_forward()
 end
 
 function model:model_backward()
-  local softmax_output = self.softmax:forward({self.softmax_h, self.labels})
-  --print(1/math.exp(-softmax_output[1]))
+  local softmax_output = self.softmax:forward({self.softmax_h, self.labels}) -- input {h, y} to softmax
   if self.mode == "train" then
       local dh = self.softmax:backward(
         {self.softmax_h,self.labels},
@@ -237,7 +237,6 @@ function model:train()
     if self.params.saveModel then
         self:saveParams()
     end
-    local timer = torch.Timer()
     self.iter = 0
     self.lr = self.params.alpha
     self.mode = "test"
@@ -260,37 +259,19 @@ function model:train()
         local End = 0
         local batch_n = 1
         while End == 0 do
-            batch_n = batch_n+1
-            local time1 = timer:time().real
+            batch_n = batch_n + 1
+            if math.fmod(batch_n, 5)==0 then print("This is training batch: "..batch_n) end
             self:clear()
             self.mode="train"
-
             End, self.labels, self.Word_s, self.Mask_s, self.Left_s, self.Padding_s
             = self.Data:read_train(
             open_pos_train_file,
             open_neg_train_file
             )
-
             if End==1 then break end
-
             self:model_forward()
             self:model_backward()
             self:update()
-            local time2 = timer:time().real
-            --[[
-            print("self.labels")
-            print(self.labels)
-            print("self.Word_s")
-            print(self.Word_s[1])
-            print(self.Word_s[2])
-            print("self.Mask_s")
-            print(self.Mask_s)
-            print("self.Left_s")
-            print(self.Left_s)
-            print("self.Padding_s")
-            print(self.Padding_s[1])
-            print(self.Padding_s[2])
-            --]]
             self.mode = "test"
         end
         open_pos_train_file:close()
@@ -318,6 +299,7 @@ function model:test()
   local ppl = 0
   while End == 0 do
     batch_n = batch_n + 1
+    if math.fmod(batch_n, 5) == 0 then print("this is batch in testing: ".. batch_n) end
     End, self.labels, self.Word_s, self.Mask_s, self.Left_s, self.Padding_s =
     self.Data:read_train(
     open_pos_train_file,
@@ -340,7 +322,8 @@ function model:test()
 
   open_pos_train_file:close()
   open_neg_train_file:close()
-  print(right_instance/total_instance,ppl/batch_n)
+  print("Correct/Total: ", "Perplexity/TotalBaches")
+  print(right_instance/total_instance, ppl/batch_n)
   if self.params.output_file~="" then
     self.output:write("iter  "..(right_instance/total_instance).."\n")
   end
