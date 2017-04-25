@@ -76,15 +76,14 @@
 %\setbeamertemplate{navigation symbols}{} % To remove the navigation symbols from the bottom of all slides uncomment this line
 }
 
-\usepackage{graphicx} % Allows including images
 \usepackage{booktabs} % Allows the use of \toprule, \midrule and \bottomrule in tables
-\usepackage{caption}
-
+\usepackage{graphicx}
+\usepackage{subcaption}
 %----------------------------------------------------------------------------------------
 %	TITLE PAGE
 %----------------------------------------------------------------------------------------
 
-\title[Text Generation in Discrete Space]{Text Generation in Discrete Space} % The short title appears at the bottom of every slide, the full title is only on the title page
+\title[\tiny{Response in Discrete Space GANs}]{Response Generation in Discrete Space Using GANs} % The short title appears at the bottom of every slide, the full title is only on the title page
 
 \author[M. Zhao et F. Mi]{\underline{Mengjie Zhao}  \and Fei Mi } % Your name
 \institute[] % Your institution as it will appear on the bottom of every slide, may be shorthand to save space
@@ -114,14 +113,6 @@
 \end{frame}
 
 \begin{frame}
-\frametitle{Some info about me...} 
-\begin{itemize} 
-\item Mengjie (Joe) Zhao
-\item MS student from communication systems
-\end{itemize}
-\end{frame}
-
-\begin{frame}
 \frametitle{Overview} % Table of contents slide, comment this block out to remove it
 \tableofcontents % Throughout your presentation, if you choose to use \section{} and \subsection{} commands, these will automatically be printed on this slide as an overview of your presentation
 \end{frame}
@@ -131,11 +122,11 @@
 %----------------------------------------------------------------------------------------
 
 %------------------------------------------------
-\section{Generative Adversarial Networks (GANs)} % Sections can be created in order to organize your presentation into discrete blocks, all sections and subsections are automatically printed in the table of contents as an overview of the talk
+\section{A quick reminder of GANs} % Sections can be created in order to organize your presentation into discrete blocks, all sections and subsections are automatically printed in the table of contents as an overview of the talk
 %------------------------------------------------
 
 \begin{frame}
-\frametitle{The generative model}
+\frametitle{Application of GAN}
 \begin{figure}
 \includegraphics[width=0.8\linewidth]{imgs/w1_g_model.png}
 \end{figure}
@@ -148,65 +139,76 @@
 %------------------------------------------------
 
 \begin{frame}
-\frametitle{Generative Adversarial Networks (GANs)}
-\begin{figure}
-\includegraphics[width=0.8\linewidth]{imgs/w1_gan.png}
+\frametitle{Performance on images (3-conv-layer CNN)}
+\begin{figure}[!htb]
+\minipage{0.3\textwidth}
+  \includegraphics[width=\linewidth]{imgs/1_face.png}
+  \caption*{Noise}\label{fig:awesome_image1}
+\endminipage\hfill
+\minipage{0.3\textwidth}
+  \includegraphics[width=\linewidth]{imgs/2_face.png}
+  \caption*{Epoch 1}\label{fig:awesome_image2}
+\endminipage\hfill
+\minipage{0.3\textwidth}%
+  \includegraphics[width=\linewidth]{imgs/3_face.png}
+  \caption*{Epoch 3}\label{fig:awesome_image3}
+\endminipage
 \end{figure}
-\vspace{1cm}
-\hspace{7cm}\tiny{src: http://www.araya.org/archives/1183}
+\hspace{7cm}\tiny\emph{Dataset: Labeled Faces in the Wild Home, UMass}
 \end{frame}
 
 %------------------------------------------------
 
-%------------------------------------------------
+% %------------------------------------------------
 
-\begin{frame}
-\frametitle{To be more formal}
-\begin{itemize}
-\item Define $p_{data}$ as the distribution where data generated from
-\item Input noise $\textbf{z}$ from noise distribution $p_z(z)$
-\item Generator: $G(z;\theta_{g}) \Rightarrow \textbf{x}$
-\item Discriminator: $D(\textbf{x}; \theta_{d})$
-\item Two-player minimax game with value function $V(G, D)$:
-\end{itemize}
-\begin{figure}
-\includegraphics[width=0.8\linewidth]{imgs/game}
-\end{figure}
-\end{frame}
+% \begin{frame}
+% \frametitle{To be more formal}
+% \begin{itemize}
+% \item Define $p_{data}$ as the distribution where data generated from
+% \item Input noise $\textbf{z}$ from noise distribution $p_z(z)$
+% \item Generator: $G(z;\theta_{g}) \Rightarrow \textbf{x}$
+% \item Discriminator: $D(\textbf{x}; \theta_{d})$ the probability $\textbf{x}$ is from $p_{data}$
+% \item G and D are trained simultaneously.
+% \item Two-player minimax game with value function $V(G, D)$:
+% \end{itemize}
+% \begin{figure}
+% \includegraphics[width=0.8\linewidth]{imgs/game}
+% \end{figure}
+% \end{frame}
+
+% %------------------------------------------------
+
+% %------------------------------------------------
+
+% \begin{frame}
+% \frametitle{To be more cartoon...}
+% \begin{figure}
+% \includegraphics[width=\linewidth]{imgs/gan_numeric}
+% \end{figure}
+% \vspace{1cm}
+% \hspace{9cm}\tiny{(Goodfellow et al. 2014)}
+% \end{frame}
+% %------------------------------------------------
 
 %------------------------------------------------
-
-%------------------------------------------------
-
-\begin{frame}
-\frametitle{To be more cartoon...}
-\begin{figure}
-\includegraphics[width=\linewidth]{imgs/gan_numeric}
-\end{figure}
-\vspace{1cm}
-\hspace{9cm}\tiny{(Goodfellow et al. 2014)}
-\end{frame}
-%------------------------------------------------
-
-%------------------------------------------------
-\begin{frame}
-\frametitle{Performance of a toy GAN (full connected MLPs)}
-\begin{figure}
-\centering
-\begin{minipage}{.5\textwidth}
-  \centering
-  \includegraphics[width=.62\linewidth]{imgs/gan_generated_img_e_50.png}
-  \captionof{figure}*{Generated letters from G (50 epochs)}
-  \label{fig:test1}
-\end{minipage}%
-\begin{minipage}{.5\textwidth}
-  \centering
-  \includegraphics[width=.83\linewidth]{imgs/loss_d.eps}
-  \captionof{figure}*{Loss of D (50 epochs)}
-  \label{fig:test2}
-\end{minipage}
-\end{figure}
-\end{frame}
+% \begin{frame}
+% \frametitle{Performance of a toy GAN (full connected MLPs)}
+% \begin{figure}
+% \centering
+% \begin{minipage}{.5\textwidth}
+%   \centering
+%   \includegraphics[width=.62\linewidth]{imgs/gan_generated_img_e_50.png}
+%   \captionof{figure}*{Generated letters from G (50 epochs)}
+%   \label{fig:test1}
+% \end{minipage}%
+% \begin{minipage}{.5\textwidth}
+%   \centering
+%   \includegraphics[width=.83\linewidth]{imgs/loss_d.eps}
+%   \captionof{figure}*{Loss of D (50 epochs)}
+%   \label{fig:test2}
+% \end{minipage}
+% \end{figure}
+% \end{frame}
 %------------------------------------------------
 
 
@@ -256,94 +258,179 @@
 % \column{.5\textwidth} % Right column and width
 % Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer lectus nisl, ultricies in feugiat rutrum, porttitor sit amet augue. Aliquam ut tortor mauris. Sed volutpat ante purus, quis accumsan dolor.
 
-% \end{columns}
-% \end{frame}
+% % \end{columns}
+% % \end{frame}
+
+% %------------------------------------------------
+% \section{Generating in discrete space?}
+% %------------------------------------------------
+
+\begin{frame}
+\frametitle{GAN on text}
+\begin{itemize}
+\item Training the model 
+  \begin{itemize}
+    \item Training on continuous space
+    \item Using \textbf{policy iteration}
+  \end{itemize} 
+\item Two major types
+	\begin{itemize}
+		\item Text generation
+		\item Response and dialog generation
+		% a cntinuous distribution that can approximate
+		% categorical samples
+
+	\end{itemize}
+\end{itemize}
+\end{frame}
+
+%------------------------------------------------
+\begin{frame}
+\frametitle{Overview} 
+\tableofcontents 
+\end{frame}
+%------------------------------------------------
+
+%------------------------------------------------
+\section{Our current framework} 
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Our current framework}
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{imgs/v2.eps}
+\end{figure}
+\end{frame}
+
+%------------------------------------------------
+%------------------------------------------------
+\begin{frame}
+\frametitle{The encoder-decoder model}
+\begin{itemize}
+\item Taking sequences as input and generates sequence as output:
+\begin{figure}
+\centering
+\hspace{-1cm}\includegraphics[width=0.85\linewidth]{imgs/en-de.png}
+\end{figure}
+\hspace{9cm}\tiny{(C. Olah 2015)}
+\end{itemize}
+\begin{itemize}
+\item Sample results (TBBT dataset):
+\begin{itemize}
+\item \emph{what is your name ? -- my name is siri .}
+\item \emph{do you know switzerland ? -- oh , of course .}
+\item \emph{i think you are correct . -- so why are you saying that ?}
+\item \emph{can you drive me home ? -- uh , sure .}
+\end{itemize}
+\end{itemize}
+\end{frame}
+%------------------------------------------------
+%------------------------------------------------
+\begin{frame}
+\frametitle{Convolutional fusion - old method}
+A': The representation of an answer consisting of time dependency words
+
+  \begin{figure}
+      \centering
+      \hspace{-1cm}\includegraphics[width=0.75\linewidth]{imgs/idea}
+  \end{figure}
+\end{frame}
+%------------------------------------------------
+
+%------------------------------------------------
+\begin{frame}
+\frametitle{Fusing in another latent space}
+\begin{itemize}
+\item For each candidate answer from beam search, we express its embedding in another latent space:
+  \begin{figure}
+      \centering
+      \hspace{-1cm}\includegraphics[width=0.85\linewidth, height=0.65\linewidth]{imgs/fuse}
+  \end{figure}
+\end{itemize}
+\end{frame}
+%------------------------------------------------
+
+%------------------------------------------------
+\begin{frame}
+\frametitle{Fusing in another latent space}
+\begin{itemize}
+\item Take weigted average of the new latent expressions of all candidates from beam search:
+      \begin{itemize}
+      \item Weigts are set based on score of each candidates from beam search.
+      \item Trainable weights.
+      \end{itemize}
+      \vspace{.4cm}
+\item Start adversarial training:
+      \begin{itemize}
+      \item The new fused expression is initial state of the LSTM in SeqGAN.
+      \item Use the same embedding from the encoder-decoder model.
+      \end{itemize}
+\end{itemize}
+\end{frame}
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Major drawback of the proposed framework}
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{imgs/v2.eps}
+\end{figure}
+\begin{itemize}
+\item This framework is not end-to-end due to the beam search operation.
+\item We need to check if the gradient could be backpropagated to update parameters in the fusing operation. 
+\end{itemize}
+\end{frame}
+
+%------------------------------------------------
+\begin{frame}
+\frametitle{Generated sentences by SeqGAN}
+\begin{itemize}
+\item Applying SeqGAN over the Big Bang Theory subtitle dataset
+\item Some generated sentences:
+	\begin{itemize}
+		\item \emph{how was that , but that doesn `t come that waitress kisses me stop}
+		\item \emph{you were my chicken ? no hello} 
+		\item \emph{penny you `re just never been decided you put it `s nice to talk}
+		\item \emph{{{[Howard]}} sheldon i should just do that ?}
+		% a cntinuous distribution that can approximate
+		% categorical samples
+
+	\end{itemize}
+% \item Reinforcement training is increasingly used for text generation
+\end{itemize}
+\end{frame}
+
+%------------------------------------------------
+
+%------------------------------------------------
+\begin{frame}
+\frametitle{Dialog generation (Li et al. 2017)}
+\begin{itemize}
+\item Use \emph{seq2seq} model as a generator to generate dialog
+\item Discriminator decides the source of the dialog
+\item Policy iteration
+\end{itemize}
+\end{frame}
+
+%------------------------------------------------
+%------------------------------------------------
+\begin{frame}
+\frametitle{For QA problem - a tentative framework}
+A': The representation of an answer consisting of time dependency words
+
+ 	\begin{figure}
+			\centering
+			\hspace{-1cm}\includegraphics[width=0.75\linewidth]{imgs/idea}
+	\end{figure}
+\end{frame}
+
+%------------------------------------------------
+%------------------------------------------------
 \begin{frame}
 \frametitle{Overview} % Table of contents slide, comment this block out to remove it
 \tableofcontents % Throughout your presentation, if you choose to use \section{} and \subsection{} commands, these will automatically be printed on this slide as an overview of your presentation
 \end{frame}
-
-%------------------------------------------------
-\section{Generating in discrete space?}
-%------------------------------------------------
-
-\begin{frame}
-\frametitle{Generating in discrete space?}
-\begin{itemize}
-\item Generator and discriminator have to be differentiable.
-\item But for text generation?
-	\begin{itemize}
-		\item word embedding
-		\item policy iteration
-		\item categorical reparameterisation (gumbel-softmax) ...
-		% a cntinuous distribution that can approximate
-		% categorical samples
-
-	\end{itemize}
-\end{itemize}
-\end{frame}
-
-%------------------------------------------------
-
-%------------------------------------------------
-
-\begin{frame}
-\frametitle{Sequence GAN (SeqGAN) for text generation}
-\begin{itemize}
-\item Treat generator as an agent in reinforcement learning
-	\begin{itemize}
-		\item State: generated tokens so far
-		\item Action: next token to be generated
-		\item Reward: evaluation of the sequence from D
-		\item \textbf{Policy iteration}
-	\end{itemize} 
-\item Experimental performance:
-\begin{figure}
-\centering
-\includegraphics[width=0.75\linewidth]{imgs/pre_cru}
-\end{figure}
-\vspace{-.2cm}
-\hspace{9cm}\tiny{(Yu et al. 2017)}
-\end{itemize}
-\end{frame}
-
-%------------------------------------------------
-
-\begin{frame}
-\frametitle{Generated sentences by SeqGAN}
-\begin{itemize}
-\item The Big Bang Theory subtitle dataset -- courtesy from @sudongqi
-\item Some generated sentences:
-	\begin{itemize}
-		\item word embedding
-		\item policy iteration
-		\item categorical reparameterisation (gumbel-softmax) ...
-		% a cntinuous distribution that can approximate
-		% categorical samples
-
-	\end{itemize}
-\end{itemize}
-\end{frame}
-
-%------------------------------------------------
-
-%------------------------------------------------
-\begin{frame}
-\frametitle{Dialog generation}
-\begin{itemize}
-\item The Big Bang Theory subtitle dataset -- courtesy from @sudongqi
-\item Some generated sentences:
-	\begin{itemize}
-		\item word embedding
-		\item policy iteration
-		\item categorical reparameterisation (gumbel-softmax) ...
-		% a cntinuous distribution that can approximate
-		% categorical samples
-
-	\end{itemize}
-\end{itemize}
-\end{frame}
-
 %------------------------------------------------
 
 % \begin{frame}
@@ -390,19 +477,16 @@
 \end{frame}
 
 %------------------------------------------------
-\begin{frame}
-\frametitle{Overview} % Table of contents slide, comment this block out to remove it
-\tableofcontents % Throughout your presentation, if you choose to use \section{} and \subsection{} commands, these will automatically be printed on this slide as an overview of your presentation
-\end{frame}
-%------------------------------------------------
 \section{Conclusion}
 %------------------------------------------------
 \begin{frame}
 \frametitle{Conclusion}
-\begin{figure}
-\centering
-\includegraphics[width=\linewidth]{imgs/gantt}
-\end{figure}
+\begin{itemize}
+% \item Adversarial training for generative models
+\item In GANs, differentiable G and D are required
+\item Policy iteration in text generation
+\item Applying GANs in the QA problem is to be considered
+\end{itemize}
 \end{frame}
 
 %------------------------------------------------
@@ -416,8 +500,6 @@
 
 %------------------------------------------------
 %------------------------------------------------
-
-
 \begin{frame}
 \vspace{3cm}
 \Huge{\centerline{That's it!}}
@@ -426,26 +508,25 @@
 \includegraphics[width=0.2\linewidth]{imgs/bt}
 \end{figure}
 \end{frame}
-
 %---------------------------------------------------
 
 \begin{frame}
 \frametitle{References}
 \footnotesize{
 \begin{thebibliography}{99} % Beamer does not support BibTeX so references must be inserted manually as below
-\bibitem[Goodfellow et al]{p1} Goodfellow et. al. (2014)
+\bibitem[Goodfellow et al]{p1} Goodfellow et al. (2014)
 \newblock Generative Adversarial Networks
 \newblock \emph{NIPS 2014}
 
-\bibitem[Yu et al]{p1} Yu et. al. (2017)
+\bibitem[Yu et al]{p1} Yu et al. (2017)
 \newblock SeqGAN: Sequence Generative Adversarial Nets with Policy Gradient 
 \newblock \emph{AAAI 17}
 
-\bibitem[Li et. al.]{p1} Li et. al. (2017)
+\bibitem[Li et. al.]{p1} Li et al. (2017)
 \newblock Adversarial Learning for Neural Dialogue Generation
 \newblock \emph{arXiv:1701.06547}
 
-\bibitem[Jang et. al.]{p1} Jang et. al. (2016)
+\bibitem[Jang et. al.]{p1} Jang et al. (2016)
 \newblock Categorical Reparameterization with Gumbel-Softmax
 \newblock \emph{arXiv:1611.01144}
 
@@ -455,5 +536,37 @@
 \end{frame}
 
 %-------------------------------------
+
+%------------------------------------------------
+\begin{frame}
+\frametitle{Appendix}
+\begin{itemize}
+\item BLEU (bilingual evaluation understudy):
+	\begin{itemize}
+ 		\item the closer a machine translation is to a professional human translation, the better it is
+ 		\item evaluating the quality of text which has been machine-translated from one natural language to another. 
+ 	\end{itemize}
+ \item GitHub: @joemzhao
+ \item Likelihood:
+		 \begin{figure}
+			\centering
+			\includegraphics[width=0.7\linewidth]{imgs/likelihood}
+		\end{figure}
+\end{itemize}
+\end{frame}
+%---------------------------------------------------
+
+%------------------------------------------------
+\begin{frame}
+\frametitle{Appendix}
+\begin{itemize}
+\item SeqGAN 
+\begin{itemize}
+		\item Generator LSTM maximize the expected rewards
+		\item Discriminator TextCNN minimize cross entropy
+\end{itemize}
+\end{itemize}
+\end{frame}
+%---------------------------------------------------
 
 \end{document}
