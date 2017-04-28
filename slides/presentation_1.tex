@@ -159,126 +159,19 @@
 
 %------------------------------------------------
 
-% %------------------------------------------------
-
-% \begin{frame}
-% \frametitle{To be more formal}
-% \begin{itemize}
-% \item Define $p_{data}$ as the distribution where data generated from
-% \item Input noise $\textbf{z}$ from noise distribution $p_z(z)$
-% \item Generator: $G(z;\theta_{g}) \Rightarrow \textbf{x}$
-% \item Discriminator: $D(\textbf{x}; \theta_{d})$ the probability $\textbf{x}$ is from $p_{data}$
-% \item G and D are trained simultaneously.
-% \item Two-player minimax game with value function $V(G, D)$:
-% \end{itemize}
-% \begin{figure}
-% \includegraphics[width=0.8\linewidth]{imgs/game}
-% \end{figure}
-% \end{frame}
-
-% %------------------------------------------------
-
-% %------------------------------------------------
-
-% \begin{frame}
-% \frametitle{To be more cartoon...}
-% \begin{figure}
-% \includegraphics[width=\linewidth]{imgs/gan_numeric}
-% \end{figure}
-% \vspace{1cm}
-% \hspace{9cm}\tiny{(Goodfellow et al. 2014)}
-% \end{frame}
-% %------------------------------------------------
-
 %------------------------------------------------
-% \begin{frame}
-% \frametitle{Performance of a toy GAN (full connected MLPs)}
-% \begin{figure}
-% \centering
-% \begin{minipage}{.5\textwidth}
-%   \centering
-%   \includegraphics[width=.62\linewidth]{imgs/gan_generated_img_e_50.png}
-%   \captionof{figure}*{Generated letters from G (50 epochs)}
-%   \label{fig:test1}
-% \end{minipage}%
-% \begin{minipage}{.5\textwidth}
-%   \centering
-%   \includegraphics[width=.83\linewidth]{imgs/loss_d.eps}
-%   \captionof{figure}*{Loss of D (50 epochs)}
-%   \label{fig:test2}
-% \end{minipage}
-% \end{figure}
-% \end{frame}
-%------------------------------------------------
-
-
-
-% \begin{frame}
-% \frametitle{Bullet Points}
-% \begin{itemize}
-% \item Lorem ipsum dolor sit amet, consectetur adipiscing elit
-% \item Aliquam blandit faucibus nisi, sit amet dapibus enim tempus eu
-% \item Nulla commodo, erat quis gravida posuere, elit lacus lobortis est, quis porttitor odio mauris at libero
-% \item Nam cursus est eget velit posuere pellentesque
-% \item Vestibulum faucibus velit a augue condimentum quis convallis nulla gravida
-% \end{itemize}
-% \end{frame}
-
-%------------------------------------------------
-
-% \begin{frame}
-% \frametitle{Blocks of Highlighted Text}
-% \begin{block}{Block 1}
-% Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer lectus nisl, ultricies in feugiat rutrum, porttitor sit amet augue. Aliquam ut tortor mauris. Sed volutpat ante purus, quis accumsan dolor.
-% \end{block}
-
-% \begin{block}{Block 2}
-% Pellentesque sed tellus purus. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Vestibulum quis magna at risus dictum tempor eu vitae velit.
-% \end{block}
-
-% \begin{block}{Block 3}
-% Suspendisse tincidunt sagittis gravida. Curabitur condimentum, enim sed venenatis rutrum, ipsum neque consectetur orci, sed blandit justo nisi ac lacus.
-% \end{block}
-% \end{frame}
-
-%------------------------------------------------
-
-% \begin{frame}
-% \frametitle{Multiple Columns}
-% \begin{columns}[c] % The "c" option specifies centered vertical alignment while the "t" option is used for top vertical alignment
-
-% \column{.45\textwidth} % Left column and width
-% \textbf{Heading}
-% \begin{enumerate}
-% \item Statement
-% \item Explanation
-% \item Example
-% \end{enumerate}
-
-% \column{.5\textwidth} % Right column and width
-% Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer lectus nisl, ultricies in feugiat rutrum, porttitor sit amet augue. Aliquam ut tortor mauris. Sed volutpat ante purus, quis accumsan dolor.
-
-% % \end{columns}
-% % \end{frame}
-
-% %------------------------------------------------
-% \section{Generating in discrete space?}
-% %------------------------------------------------
-
 \begin{frame}
-\frametitle{GAN on text}
+\frametitle{Apply GAN on text}
 \begin{itemize}
 \item Training the model 
   \begin{itemize}
     \item Training on continuous space
     \item Using \textbf{policy iteration}
   \end{itemize} 
-\item Two major types
+\item Two major types of applications
 	\begin{itemize}
 		\item Text generation
 		\item Response and dialog generation
-		% a cntinuous distribution that can approximate
-		% categorical samples
 
 	\end{itemize}
 \end{itemize}
@@ -296,7 +189,7 @@
 %------------------------------------------------
 
 \begin{frame}
-\frametitle{Our current framework}
+\frametitle{Our current framework in response generation}
 \begin{figure}
 \centering
 \includegraphics[width=\linewidth]{imgs/v2.eps}
@@ -328,7 +221,7 @@
 %------------------------------------------------
 %------------------------------------------------
 \begin{frame}
-\frametitle{Convolutional fusion - old method}
+\frametitle{Convolution fusion - old proposal}
 A': The representation of an answer consisting of time dependency words
 
   \begin{figure}
@@ -355,9 +248,9 @@ A': The representation of an answer consisting of time dependency words
 \begin{frame}
 \frametitle{Fusing in another latent space}
 \begin{itemize}
-\item Take weigted average of the new latent expressions of all candidates from beam search:
+\item Take weighted average of the new latent expressions of all candidates from beam search:
       \begin{itemize}
-      \item Weigts are set based on score of each candidates from beam search.
+      \item Weights are set based on score of each candidates from beam search.
       \item Trainable weights.
       \end{itemize}
       \vspace{.4cm}
@@ -371,61 +264,32 @@ A': The representation of an answer consisting of time dependency words
 %------------------------------------------------
 
 \begin{frame}
-\frametitle{Major drawback of the proposed framework}
+\frametitle{Major drawbacks of the proposed framework}
 \begin{figure}
 \centering
 \includegraphics[width=\linewidth]{imgs/v2.eps}
 \end{figure}
 \begin{itemize}
-\item This framework is not end-to-end due to the beam search operation.
-\item We need to check if the gradient could be backpropagated to update parameters in the fusing operation. 
+\item Not end-to-end due to the beam search operation.
+\item More parameters introduced due to the increase of model depth.
+\item Need to check if the gradient could be backpropagated to update parameters in the fusing operation. 
 \end{itemize}
 \end{frame}
 
 %------------------------------------------------
 \begin{frame}
-\frametitle{Generated sentences by SeqGAN}
-\begin{itemize}
-\item Applying SeqGAN over the Big Bang Theory subtitle dataset
-\item Some generated sentences:
-	\begin{itemize}
-		\item \emph{how was that , but that doesn `t come that waitress kisses me stop}
-		\item \emph{you were my chicken ? no hello} 
-		\item \emph{penny you `re just never been decided you put it `s nice to talk}
-		\item \emph{{{[Howard]}} sheldon i should just do that ?}
-		% a cntinuous distribution that can approximate
-		% categorical samples
-
-	\end{itemize}
-% \item Reinforcement training is increasingly used for text generation
-\end{itemize}
-\end{frame}
-
-%------------------------------------------------
-
-%------------------------------------------------
-\begin{frame}
-\frametitle{Dialog generation (Li et al. 2017)}
+\frametitle{Similar framework for dialog generation (Li et al. 2017)}
 \begin{itemize}
 \item Use \emph{seq2seq} model as a generator to generate dialog
 \item Discriminator decides the source of the dialog
-\item Policy iteration
+\begin{itemize}
+\item Using Monte Carlo search to score sentences.
+\item Make the discriminator can score both full and partial sentences.
+\end{itemize}
 \end{itemize}
 \end{frame}
-
 %------------------------------------------------
-%------------------------------------------------
-\begin{frame}
-\frametitle{For QA problem - a tentative framework}
-A': The representation of an answer consisting of time dependency words
 
- 	\begin{figure}
-			\centering
-			\hspace{-1cm}\includegraphics[width=0.75\linewidth]{imgs/idea}
-	\end{figure}
-\end{frame}
-
-%------------------------------------------------
 %------------------------------------------------
 \begin{frame}
 \frametitle{Overview} % Table of contents slide, comment this block out to remove it
@@ -433,37 +297,6 @@ A': The representation of an answer consisting of time dependency words
 \end{frame}
 %------------------------------------------------
 
-% \begin{frame}
-% \frametitle{Theorem}
-% \begin{theorem}[Mass--energy equivalence]
-% $E = mc^2$
-% \end{theorem}
-% \end{frame}
-
-%------------------------------------------------
-
-% \begin{frame}[fragile] % Need to use the fragile option when verbatim is used in the slide
-% \frametitle{Verbatim}
-% \begin{example}[Theorem Slide Code]
-% \begin{verbatim}
-% \begin{frame}
-% \frametitle{Theorem}
-% \begin{theorem}[Mass--energy equivalence]
-% $E = mc^2$
-% \end{theorem}
-% \end{frame}\end{verbatim}
-% \end{example}
-% \end{frame}
-
-%------------------------------------------------
-
-% \begin{frame}
-% \frametitle{Figure}
-% Uncomment the code on this slide to include your own image from the same directory as the template .TeX file.
-% %\begin{figure}
-% %\includegraphics[width=0.8\linewidth]{test}
-% %\end{figure}
-% \end{frame}
 
 %------------------------------------------------
 \section{Rate of progress}
@@ -472,7 +305,7 @@ A': The representation of an answer consisting of time dependency words
 \frametitle{Rate of progress}
 \begin{figure}
 \centering
-\includegraphics[width=\linewidth]{imgs/gantt}
+\includegraphics[width=\linewidth]{imgs/gantt2}
 \end{figure}
 \end{frame}
 
@@ -483,29 +316,24 @@ A': The representation of an answer consisting of time dependency words
 \frametitle{Conclusion}
 \begin{itemize}
 % \item Adversarial training for generative models
-\item In GANs, differentiable G and D are required
-\item Policy iteration in text generation
-\item Applying GANs in the QA problem is to be considered
+\item Individual component of the proposed model is implemented.
+\item Need to check if the gradients could be backpropagated to update parameters in the fusion operation.
+\item Determine if the fusion could improve model performance.
+\item Try other generative models to make the whole framework end-to-end.
+
 \end{itemize}
 \end{frame}
 
 %------------------------------------------------
 
-% \begin{frame}[fragile] % Need to use the fragile option when verbatim is used in the slide
-% \frametitle{Citation}
-% An example of the \verb|\cite| command to cite within the presentation:\\~
-
-% This statement requires citation \cite{p1}.
-% \end{frame}
-
-%------------------------------------------------
 %------------------------------------------------
 \begin{frame}
 \vspace{3cm}
 \Huge{\centerline{That's it!}}
 \begin{figure}
 \hspace{-7cm}
-\includegraphics[width=0.2\linewidth]{imgs/bt}
+\vspace{-1cm}
+\includegraphics[width=0.3\linewidth]{imgs/bt2.jpg}
 \end{figure}
 \end{frame}
 %---------------------------------------------------
@@ -514,9 +342,10 @@ A': The representation of an answer consisting of time dependency words
 \frametitle{References}
 \footnotesize{
 \begin{thebibliography}{99} % Beamer does not support BibTeX so references must be inserted manually as below
-\bibitem[Goodfellow et al]{p1} Goodfellow et al. (2014)
-\newblock Generative Adversarial Networks
-\newblock \emph{NIPS 2014}
+
+\bibitem[C, Olah]{p1} C. Olah (2015)
+\newblock Computer, respond to this email.
+\newblock \emph{Google Research Blog}
 
 \bibitem[Yu et al]{p1} Yu et al. (2017)
 \newblock SeqGAN: Sequence Generative Adversarial Nets with Policy Gradient 
@@ -525,11 +354,6 @@ A': The representation of an answer consisting of time dependency words
 \bibitem[Li et. al.]{p1} Li et al. (2017)
 \newblock Adversarial Learning for Neural Dialogue Generation
 \newblock \emph{arXiv:1701.06547}
-
-\bibitem[Jang et. al.]{p1} Jang et al. (2016)
-\newblock Categorical Reparameterization with Gumbel-Softmax
-\newblock \emph{arXiv:1611.01144}
-
 
 \end{thebibliography}
 }
