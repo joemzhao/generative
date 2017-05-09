@@ -39,7 +39,7 @@ def write_pickle(data, path):
         pickle.dump(data, handle)
 
 def load_data(force):
-    path_root = 'data/can_emb'
+    path_root = '/Users/mzhao/Desktop/nnMisc/full/fuse/data/can_emb'
     path_emb = join(path_root, 'emb', 'total_emb.npy')
     path_candidate = join(path_root, 'candidates')
     path_candidates_argmax = join(path_candidate, 'argmax_list.txt')
@@ -83,7 +83,7 @@ def load_data(force):
 
 
 def build_up_candidates(cand_beam):
-    # Note that I use `0` to denote padding symbols. please correct it.
+    # Note that I use `99999` to denote padding symbols. please correct it.
     candidates = []
     candidate_max_length = max([len(candidate[2]) for candidate in cand_beam])
     tuples = make_square(cand_beam, 21)

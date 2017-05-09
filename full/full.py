@@ -26,18 +26,15 @@ data_path = "./datasets/bbt_concate.txt"
 def main():
     random.seed(SEED)
     np.random.seed(SEED)
+
     G_dataloader = G_ld(BATCH_SIZE, 20, data_path)
+
     FUSER = fuser.Fuser()
     generator = G(FUSER, VOCAB_SIZE, BATCH_SIZE, EMB_DIM, HID_DIM, SEQ_LEN, START_TOKEN, LR)
-    print "Finish building the fuser and the generator..."
 
     sess = tf.Session()
     sess.run(tf.global_variables_initializer())
-    print "Finish initializing the session..."
 
-    # generator.fuser.test_feed(sess)
-    log = open("save/experiment-log.txt", "w")
-    log.write("Pretraining the generator...")
     G_dataloader.create_batches()
     for epoch in xrange(PRE_EPOCH_NUM):
         print "This is epoch %d: " % epoch

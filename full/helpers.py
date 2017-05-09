@@ -16,12 +16,12 @@ def pre_train_epoch(sess, trainable, data_loader):
     data_loader.reset_pointer()
 
     for batch in xrange(data_loader.num_batch):
-        if batch % 100 == 0:
+        if batch % 20 == 0:
             print "%d / %d" % (batch, data_loader.num_batch)
             print "Training loss : ", np.mean(supervised_g_loss)
         next_bc = data_loader.next_batch()
         ''' [pretrain_update, pretrain_loss] '''
-        _, g_loss = trainable.pretrain_step(sess, next_bc)
+        _, g_loss, _ = trainable.pretrain_step(sess, next_bc)
         supervised_g_loss.append(g_loss)
 
     return np.mean(supervised_g_loss)

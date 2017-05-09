@@ -58,6 +58,8 @@ def define_fusion(input, embedding):
     for i, (conv_spatial, conv_depth) in enumerate(archits):
         with tf.variable_scope("conv-lrelu-pooling-%s"%i):
             W = weight_variable(shape=[1, conv_spatial, embedding_size, conv_depth])
+            print "This is parameter W:"
+            print W
             b = bias_variable(shape=[conv_depth])
             conv = conv2d(
                         embedded_input,
@@ -93,9 +95,14 @@ def define_fusion(input, embedding):
     print('size of the final feature: {}'.format(final_features.get_shape()))
     return final_features
 
+def get_candidates(GA_batches):
+    '''
+    Currently for testing the gradient backpropagation.
+    '''
+    return np.squeeze(np.array(GA_batches), axis=(0,))
 
-def main(force):
-    batch_size = 64
+def main(force, sess):
+    batch_size = 1
     candidate_size = 21
     num_batches = 1
 
@@ -103,18 +110,21 @@ def main(force):
     print "Finish loading data."
 
     '''
-    Q_batches: Questions within this batch
+    Q_batches: Questions within this batch  --- num_batch x batch_size
     A_batches: Truth answering
     GA_batches: candidates
     print (np.array(GA_batches)).shape -- (1, 64, 21, x) where x is number of words after padding
+                                       -- (num_batch, batch_size, candidates, max_sentences_length)
     '''
 
     candidates, candidate_max_length = fu.build_up_candidates(cand_beam)
     Q_batches, A_batches, GA_batches = fu.build_batches(candidates, batch_size, num_batches)
+    candidates_tofeed = get_candidates(GA_batches)
 
     input_ph, embedding_ph = define_placeholder(batch_size, candidate_size, candidate_max_length, embedding)
     fused_feature = define_fusion(input_ph, embedding_ph)
-    return fused_feature
+
+    return embedding, fused_feature, candidates_tofeed
 
 if __name__ == "__main__":
-    main(True)
+    _ = main(True)

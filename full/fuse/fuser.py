@@ -24,17 +24,12 @@ class Fuser(object):
         self.input_ph = tf.placeholder(tf.int32,
                              [self.batch_size, self.candidate_size, self.candidate_max_length],
                              name="input_candidate")
+        self.fuse(self.init_embedding)
 
-        self.embedding_ph = tf.placeholder(
-                              tf.float32,
-                              self.init_embedding.shape,
-                              name="embedding_matrix")
-
-
-    def fuse(self):
-        vocab_size, embedding_size = self.embedding_ph.get_shape().as_list()
+    def fuse(self, input_embedding, reuse=False):
+        vocab_size, embedding_size = input_embedding.shape
         batch_size, candidate_size, candidate_length = self.input_ph.get_shape().as_list()
-        embedded_input = tf.nn.embedding_lookup(self.embedding_ph, self.input_ph)
+        embedded_input = tf.nn.embedding_lookup(input_embedding, self.input_ph)
 
         # print('vocab size:{},embedding size:{}'.format(vocab_size, embedding_size))
         # print('batch size:{},candidate size:{}'.format(batch_size, candidate_size))
@@ -47,17 +42,26 @@ class Fuser(object):
 
         pooled_outputs = []
         for i, (conv_spatial, conv_depth) in enumerate(archits):
-            with tf.variable_scope("conv-lrelu-pooling-%s"%i):
-                W = self.weight_variable(shape=[1, conv_spatial, embedding_size, conv_depth])
-                # print "This is parameter W:"
-                # print W
-                b = self.bias_variable(shape=[conv_depth])
+            with tf.variable_scope("fuser-conv-lrelu-pooling-%s"%i) as scope:
+                if not reuse:
+                    _W_ = tf.get_variable(
+                        name="_W_",
+                        shape=[1, conv_spatial, embedding_size, conv_depth],
+                        initializer=tf.contrib.layers.xavier_initializer())
+                    _b_ = tf.get_variable(
+                        name="_b_", shape=[conv_depth],
+                        initializer=tf.contrib.layers.xavier_initializer())
+                else:
+                    scope.reuse_variables()
+                    _W_ = tf.get_variable(name="_W_")
+                    _b_ = tf.get_variable(name="_b_")
+
                 conv = self.conv2d(
                             embedded_input,
-                            W,
+                            _W_,
                             strides=[1, 1, 1, 1],
                             padding="VALID")
-                h = self.leakyrelu(conv, b, alpha=1.0/5.5)
+                h = self.leakyrelu(conv, _b_, alpha=1.0/5.5)
                 pooled = self.max_pool(
                             h,
                             ksize=[1, 1, candidate_length-conv_spatial+1, 1],
@@ -75,37 +79,25 @@ class Fuser(object):
         features = tf.reshape(features, shape=[batch_size * num_filters_total, -1])
         # print('size of feature for step 2: {}'.format(features.get_shape()))
 
-        W = tf.get_variable(
-            "W",
-            shape=[candidate_size, 1],
-            initializer=tf.contrib.layers.xavier_initializer())
+        with tf.variable_scope("fuser-weight-of-candidates") as scope:
+            if not reuse:
+                W_ = tf.get_variable(name="W_", shape=[candidate_size, 1], initializer=tf.contrib.layers.xavier_initializer())
+            else:
+                scope.reuse_variables()
+                W_ = tf.get_variable("W_")
 
-        weighted_features = tf.matmul(features, W)
-        final_features = tf.reshape(weighted_features, [batch_size, num_filters_total])
-
-        print('size of the final feature: {}'.format(final_features.get_shape()))
-        return final_features # batch_size x 64
-
-
+        weighted_features = tf.matmul(features, W_)
+        self.final_features = tf.reshape(weighted_features, [batch_size, num_filters_total])
+        # print('size of the final feature: {}'.format(final_features.get_shape()))
 
     def get_candidates_tofeed(self):
-        '''
-        Currently for testing the gradient backpropagation.
-        '''
         return np.squeeze(np.array(self.GA_batches), axis=(0,))
 
-    def fuse_step(self):
-        return self.fuse()
-        # sess.run([fused], feed_dict={self.input_ph: input_candidate, self.embedding_ph:emb})
-
-
-    def weight_variable(self, shape, initmethod=tf.truncated_normal, name="W", trainable=True):
-        initial = tf.constant(0.1, shape=shape)
-        return tf.Variable(initial, name=name)
+    def weight_variable(self, shape, initmethod=tf.truncated_normal, name="W_CNN", trainable=True):
+        return tf.get_variable(shape=shape, name=name)
 
     def bias_variable(self, shape, name="b"):
-        initial = tf.constant(0.1, shape=shape)
-        return tf.Variable(initial, name=name)
+        return tf.get_variable(shape=shape, name=name)
 
     def max_pool(self, x, ksize, strides, padding="SAME", name="pool"):
         '''
@@ -127,17 +119,19 @@ class Fuser(object):
         temp = tf.nn.bias_add(conv, b)
         return tf.maximum(temp * alpha, temp)
 
-    def test_feed(self, sess):
+    def test_feed(self):
+        optimizer = tf.train.AdamOptimizer(0.01)
+        gradients = optimizer.compute_gradients(self.final_features)
         candidates_tofeed = self.get_candidates_tofeed()
-        sess.run([self.input_ph], feed_dict=
-                                    {self.input_ph: candidates_tofeed,
-                                    self.embedding_ph: self.init_embedding
-                                    }
-                                )
-        print "session run finished!"
+        train_op = optimizer.apply_gradients(gradients)
+
+        sess = tf.Session()
+        sess.run(tf.global_variables_initializer())
+
+        for it in xrange(3):
+            print sess.run([train_op, self.final_features], feed_dict={self.input_ph: candidates_tofeed})
+            print "session run finished!"
 
 if __name__ == "__main__":
     f = Fuser()
-    sess = tf.Session()
-    sess.run(tf.global_variables_initializer())
     f.test_feed()
