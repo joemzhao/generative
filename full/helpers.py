@@ -7,7 +7,7 @@ def generate_samples(sess, trainable, batch_size, generated_num, output_file):
         generated_samples.extend(trainable.generate(sess))
     with open(output_file, "w") as fout:
         for item in generated_samples:
-            temp = ' '.join([str(x) for x in poem]) + '\n'
+            temp = ' '.join([str(x) for x in item]) + '\n'
             fout.write(temp)
     fout.close()
 
@@ -16,12 +16,12 @@ def pre_train_epoch(sess, trainable, data_loader):
     data_loader.reset_pointer()
 
     for batch in xrange(data_loader.num_batch):
-        if batch % 20 == 0:
+        if batch % 3 == 0 and batch > 0:
             print "%d / %d" % (batch, data_loader.num_batch)
             print "Training loss : ", np.mean(supervised_g_loss)
         next_bc = data_loader.next_batch()
         ''' [pretrain_update, pretrain_loss] '''
-        _, g_loss, _ = trainable.pretrain_step(sess, next_bc)
+        _, g_loss = trainable.pretrain_step(sess, next_bc)
         supervised_g_loss.append(g_loss)
 
     return np.mean(supervised_g_loss)

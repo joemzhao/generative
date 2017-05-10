@@ -28,6 +28,10 @@ class g_data_loader(object):
         self.sentences_stream = self.sentences_stream[:self.num_batch * self.batch_size]
         self.sentences_batches = np.split(np.array(self.sentences_stream), self.num_batch, 0)
         self.pointer = 0
+        print "%d batch created for pretraining!" % self.num_batch
+
+    def this_batch(self):
+        return self.sentences_batches[self.pointer-1]
 
     def next_batch(self):
         ret = self.sentences_batches[self.pointer]
@@ -40,5 +44,5 @@ class g_data_loader(object):
 
 if __name__ == "__main__":
     path = "./datasets/bbt_concate.txt"
-    G = g_data_loader(batch_size=64, largest_len=20, data_path=path)
+    G = g_data_loader(batch_size=1, largest_len=20, data_path=path)
     G.create_batches()

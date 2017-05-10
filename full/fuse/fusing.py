@@ -101,7 +101,7 @@ def get_candidates(GA_batches):
     '''
     return np.squeeze(np.array(GA_batches), axis=(0,))
 
-def main(force, sess):
+def main(force):
     batch_size = 1
     candidate_size = 21
     num_batches = 1
@@ -127,4 +127,4 @@ def main(force, sess):
     return embedding, fused_feature, candidates_tofeed
 
 if __name__ == "__main__":
-    _ = main(True)
+    _ = main(False)

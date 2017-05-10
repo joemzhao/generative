@@ -3,14 +3,6 @@ from tensorflow.python.ops import tensor_array_ops, control_flow_ops
 
 
 class Generator(object):
-    '''
-    num_emb         -> vocab_size
-    batch_size      -> batch size
-    emb_dim         -> embdedding dimmension
-    hidden_dim      -> hidden dimmension
-    sequence_length -> max len of sequences
-    start_token     -> 0
-    '''
     def __init__(self, fuser=None, num_emb=20525, batch_size=1, emb_dim=256, hidden_dim=64,
                  sequence_length=20, start_token=0,
                  learning_rate=0.01):
@@ -19,7 +11,7 @@ class Generator(object):
         self.batch_size = batch_size
         self.emb_dim = emb_dim
         self.hidden_dim = hidden_dim
-        self.sequence_length = sequence_length
+        self.sequence_length = self.fuser.candidate_max_length
         self.start_token = tf.constant([start_token] * self.batch_size, dtype=tf.int32)
         self.learning_rate = tf.Variable(float(learning_rate), trainable=False)
         self.g_params = []
@@ -28,7 +20,12 @@ class Generator(object):
         self.expected_reward = tf.Variable(tf.zeros([self.sequence_length]))
 
         with tf.variable_scope('generator'):
+            '''
+            Loading the embedding can improve performance.
+            Results are significant.
+            '''
             self.g_embeddings = tf.Variable(self.fuser.init_embedding)
+            # self.g_embeddings = tf.Variable(self.init_matrix([self.num_emb, self.emb_dim]))
             self.g_params.append(self.g_embeddings)
             self.g_recurrent_unit = self.create_recurrent_unit(self.g_params)  # maps h_tm1 to h_t for generator
             self.g_output_unit = self.create_output_unit(self.g_params)  # maps h_t to o_t (output token logits)
@@ -137,12 +134,15 @@ class Generator(object):
         self.g_updates = g_opt.apply_gradients(zip(self.g_grad, self.g_params))
 
     def generate(self, sess):
-        outputs = sess.run(self.gen_x)
+        candidates_tofeed = self.fuser.get_candidates_tofeed()
+        outputs = sess.run(self.gen_x, feed_dict = {self.fuser.input_ph: candidates_tofeed})
         return outputs
 
     def pretrain_step(self, sess, x):
         self.fuser.fuse(self.g_embeddings.eval(session=sess), reuse=True)
         candidates_tofeed = self.fuser.get_candidates_tofeed()
+        # print "CHECK "
+        # print candidates_tofeed
         outputs = sess.run([self.pretrain_updates, self.pretrain_loss],
                             feed_dict = {
                                            self.x: x,

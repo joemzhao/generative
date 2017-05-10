@@ -42,10 +42,6 @@ def load_data(force):
     path_root = '/Users/mzhao/Desktop/nnMisc/full/fuse/data/can_emb'
     path_emb = join(path_root, 'emb', 'total_emb.npy')
     path_candidate = join(path_root, 'candidates')
-    path_candidates_argmax = join(path_candidate, 'argmax_list.txt')
-    path_candidates_argmax_p = join(path_candidate, 'argmax_list.pickle')
-    path_candidates_pick = join(path_candidate, 'weighted_pick_list.txt')
-    path_candidates_pick_p = join(path_candidate, 'weighted_pick_list.pickle')
     path_candidates_beam = join(path_candidate, 'beam_search_list.txt')
     path_candidates_beam_p = join(path_candidate, 'beam_search_list.pickle')
 
