@@ -115,12 +115,18 @@ class Generator(object):
         # training updates
         pretrain_opt = self.g_optimizer(self.learning_rate) # pre train optimizer
 
+        '''
+        Aretraining of generator
+        pretrain_updates
+        '''
+
         self.pretrain_grad, _ = tf.clip_by_global_norm(tf.gradients(self.pretrain_loss, self.g_params), self.grad_clip)
         self.pretrain_updates = pretrain_opt.apply_gradients(zip(self.pretrain_grad, self.g_params))
 
-        #######################################################################################################
-        #  Unsupervised Training
-        #######################################################################################################
+        ''' Unsupervised Training.
+        Adversarial training g_updates
+        '''
+
         self.g_loss = -tf.reduce_sum(
             tf.reduce_sum(
                 tf.one_hot(tf.to_int32(tf.reshape(self.x, [-1])), self.num_emb, 1.0, 0.0) * tf.log(
@@ -141,8 +147,6 @@ class Generator(object):
     def pretrain_step(self, sess, x):
         self.fuser.fuse(self.g_embeddings.eval(session=sess), reuse=True)
         candidates_tofeed = self.fuser.get_candidates_tofeed()
-        # print "CHECK "
-        # print candidates_tofeed
         outputs = sess.run([self.pretrain_updates, self.pretrain_loss],
                             feed_dict = {
                                            self.x: x,
