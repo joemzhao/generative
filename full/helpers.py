@@ -1,5 +1,6 @@
 import tensorflow as tf
 import numpy as np
+import json
 
 def generate_samples(sess, trainable, batch_size, generated_num, output_file):
     generated_samples = []
@@ -10,6 +11,7 @@ def generate_samples(sess, trainable, batch_size, generated_num, output_file):
             temp = ' '.join([str(x) for x in item]) + '\n'
             fout.write(temp)
     fout.close()
+    return generated_samples
 
 def pre_train_epoch(sess, trainable, data_loader):
     supervised_g_loss = []
@@ -25,3 +27,28 @@ def pre_train_epoch(sess, trainable, data_loader):
         supervised_g_loss.append(g_loss)
 
     return np.mean(supervised_g_loss)
+
+def translator(q, a, a_):
+    dict_path = "./datasets/dict.json"
+    word_dict = json.load(open(dict_path))
+    temp = []
+    print "Question:"
+    for item in q:
+        for name, idx in word_dict.items():
+            if idx == item:
+                temp.append(name)
+    print temp
+    temp = []
+    print "Real answer:"
+    for item in a:
+        for name, idx in word_dict.items():
+            if idx == item:
+                temp.append(name)
+    print temp
+    temp = []
+    print "From GAN:"
+    for item in a_:
+        for name, idx in word_dict.items():
+            if idx == item:
+                temp.append(name)
+    print temp

@@ -53,7 +53,7 @@ def main():
             print loss
 
     nega_A = helpers.generate_samples(sess, generator, 1, 1, out_file)[0]
-    real_A = np.array(FUSER.A_batches[0][0][:6])
+    real_A = np.array(FUSER.A_batches[0][0])
 
     posilabel = [[1, 0]]
     negalabel = [[0, 1]]
@@ -61,17 +61,17 @@ def main():
             discriminator.input_y: np.concatenate([posilabel, negalabel], 0),
             discriminator.dropout_keep_prob: 0.9}
 
-    for epoch in xrange(50):
+    for epoch in xrange(0):
         _, _ = sess.run([discriminator.train_op, discriminator.loss], feed_dict=feed)
 
     print "Finish pretrain D."
     print "==== begin of adversarial training ===="
-    print "Target is [ 72  21  40 259  14  15 ] "
+    print "Target is [160, 782, 305, 20, 773, 38, 20, 588, 55, 16, 73, 586, 408, 38, 75] "
     rollout = ROLLOUT(generator, 0.8)
     MAX_CAN = generator.fuser.candidate_max_length
     ''' Adversarial Training '''
-    for _ in xrange(5):
-        for it in xrange(3):
+    for _ in xrange(0):
+        for it in xrange(0):
             samples = generator.generate(sess)
             candidates_tofeed = rollout.lstm.fuser.get_candidates_tofeed()
             rewards = rollout.get_reward(sess, samples, MAX_CAN-1, discriminator)
@@ -83,13 +83,13 @@ def main():
             if it % 10  == 0:
                 loss = helpers.pre_train_epoch(sess, generator, G_dataloader)
                 print "G adversarial loss", loss
-                print samples
 
         rollout.update_params()
 
-        for _ in xrange(1):
+        for _ in xrange(0):
             nega_A = helpers.generate_samples(sess, generator, 1, 1, out_file)[0]
-            real_A = np.array(FUSER.A_batches[0][0][:6])
+            real_A = np.array(FUSER.A_batches[0][0][:8])
+
             feed = {discriminator.input_x: np.array([nega_A, real_A]),
                     discriminator.input_y: np.concatenate([posilabel, negalabel], 0),
                     discriminator.dropout_keep_prob: 0.9}
@@ -99,6 +99,8 @@ def main():
         g_gan_loss = helpers.pre_train_epoch(sess, generator, G_dataloader)
         print "Results of GAN:"
         print g_gan_loss
+        samples = generator.generate(sess)
+        helpers.translator([160, 782, 305, 20, 773, 38, 20, 588, 55, 16, 73, 586, 408, 38, 75], real_A, samples[0])
         print "-----------------------------"
 
 if __name__ == "__main__":
