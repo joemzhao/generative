@@ -1,5 +1,6 @@
 from tensorflow.python.ops import tensor_array_ops, control_flow_ops
 
+import numpy as np
 import tensorflow as tf
 import fuse.trim_fuser as fuser
 
@@ -14,7 +15,7 @@ class Generator(object):
         self.hidden_dim = hidden_dim
 
         ''' to be more clear we use fix length of pretraining. For adversari we use cand_max_len'''
-        self.sequence_length = self.sequence_length
+        self.sequence_length = cand_max_len
         self.start_token = tf.constant([start_token] * self.batch_size, dtype=tf.int32)
         self.learning_rate = tf.Variable(float(learning_rate), trainable=False)
         self.g_params = []
@@ -142,18 +143,17 @@ class Generator(object):
         self.g_grad, _ = tf.clip_by_global_norm(tf.gradients(self.g_loss, self.g_params), self.grad_clip)
         self.g_updates = g_opt.apply_gradients(zip(self.g_grad, self.g_params))
 
-    def generate(self, sess):
-        candidates_tofeed = self.fuser.get_candidates_tofeed()
-        outputs = sess.run(self.gen_x, feed_dict = {self.fuser.input_ph: candidates_tofeed})
+    def generate(self, sess, candidates):
+        outputs = sess.run(self.gen_x,
+                    feed_dict = {self.fuser.input_ph: np.expand_dims(np.asarray(candidates), axis=0)})
         return outputs
 
-    def pretrain_step(self, sess, x):
+    def pretrain_step(self, sess, x, candidates):
         self.fuser.fuse(self.g_embeddings.eval(session=sess), reuse=True)
-        candidates_tofeed = self.fuser.get_candidates_tofeed()
         outputs = sess.run([self.pretrain_updates, self.pretrain_loss],
                             feed_dict = {
-                                           self.x: x,
-                                           self.fuser.input_ph: candidates_tofeed
+                                        self.x: x,
+                                        self.fuser.input_ph: np.expand_dims(np.asarray(candidates), axis=0)
                                         }
                         )
 

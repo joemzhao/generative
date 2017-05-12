@@ -13,17 +13,23 @@ def generate_samples(sess, trainable, batch_size, generated_num, output_file):
     fout.close()
     return generated_samples
 
-def pre_train_epoch(sess, trainable, data_loader):
+def pre_train_epoch(sess, trainable, data_loader, candidates):
+    '''
+    Since this is for pretraining, for placeholder in the fusing operator (input candidates) we will just use the first set of candidates.
+    '''
     supervised_g_loss = []
     data_loader.reset_pointer()
 
     for batch in xrange(data_loader.num_batch):
-        if batch % 3 == 0 and batch > 0:
+        if batch % 5 == 0 and batch > 0:
             print "%d / %d" % (batch, data_loader.num_batch)
             print "Training loss : ", np.mean(supervised_g_loss)
+
         next_bc = data_loader.next_batch()
+
         ''' [pretrain_update, pretrain_loss] '''
-        _, g_loss = trainable.pretrain_step(sess, next_bc)
+        _, g_loss = trainable.pretrain_step(sess, next_bc, candidates)
+
         supervised_g_loss.append(g_loss)
 
     return np.mean(supervised_g_loss)

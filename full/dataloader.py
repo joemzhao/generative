@@ -1,6 +1,7 @@
 import numpy as np
 import json
 import simplejson
+import cPickle
 
 class g_data_loader(object):
     '''
@@ -41,8 +42,22 @@ class g_data_loader(object):
     def reset_pointer(self):
         self.pointer = 0
 
+class full_loader(object):
+    def __init__(self):
+        idx = 0
+        out_name = "./seperator/seps/pair_"+str(idx)+".p"
+        self.Q, self.A, self.candidates = cPickle.load(open(out_name, "r"))
+
+    def pad_candidates(self):
+        max_len = max([len(can) for can in self.candidates])
+        temp = []
+        for can in self.candidates:
+            can = can + [0] * (max_len-len(can))
+            temp.append(can)
+        self.candidates = temp
+
+        return self.Q, self.A, self.candidates, max_len
 
 if __name__ == "__main__":
-    path = "./datasets/bbt_concate.txt"
-    G = g_data_loader(batch_size=1, largest_len=20, data_path=path)
-    G.create_batches()
+    floader = full_loader()
+    floader.pad_candidates()

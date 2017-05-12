@@ -17,9 +17,8 @@ class Fuser(object):
 
         self.init_embedding, _, self.cand_beam, _ = fu.load_data(force)
         candidates, self.candidate_max_length = fu.build_up_candidates(self.cand_beam)
-        print "Finish loading data for initializing."
+
         self.Q_batches, self.A_batches, self.GA_batches = fu.build_batches(candidates, self.batch_size, self.num_batchs)
-        print "Finish spliting batches."
 
         self.input_ph = tf.placeholder(tf.int32,
                              [self.batch_size, self.candidate_size, self.candidate_max_length],
@@ -31,9 +30,9 @@ class Fuser(object):
         batch_size, candidate_size, candidate_length = self.input_ph.get_shape().as_list()
         embedded_input = tf.nn.embedding_lookup(input_embedding, self.input_ph)
 
-        # print('vocab size:{},embedding size:{}'.format(vocab_size, embedding_size))
-        # print('batch size:{},candidate size:{}'.format(batch_size, candidate_size))
-        # print('size of embedded_input: {}'.format(embedded_input.get_shape()))
+        print('vocab size:{},embedding size:{}'.format(vocab_size, embedding_size))
+        print('batch size:{},candidate size:{}'.format(batch_size, candidate_size))
+        print('size of embedded_input: {}'.format(embedded_input.get_shape()))
 
         # convolution
         conv_spatials = [2, 2]
@@ -72,12 +71,12 @@ class Fuser(object):
         features = tf.reshape(
                              tf.concat(pooled_outputs, 3),
                              [batch_size, candidate_size, num_filters_total])
-        # print('size of fused feature: {}'.format(features.get_shape()))
+        print('size of fused feature: {}'.format(features.get_shape()))
 
         features = tf.transpose(features, [0, 2, 1])
-        # print('size of feature for step 1: {}'.format(features.get_shape()))
+        print('size of feature for step 1: {}'.format(features.get_shape()))
         features = tf.reshape(features, shape=[batch_size * num_filters_total, -1])
-        # print('size of feature for step 2: {}'.format(features.get_shape()))
+        print('size of feature for step 2: {}'.format(features.get_shape()))
 
         with tf.variable_scope("fuser-weight-of-candidates") as scope:
             if not reuse:
@@ -88,7 +87,7 @@ class Fuser(object):
 
         weighted_features = tf.matmul(features, W_)
         self.final_features = tf.reshape(weighted_features, [batch_size, num_filters_total])
-        # print('size of the final feature: {}'.format(final_features.get_shape()))
+        print('size of the final feature: {}'.format(self.final_features.get_shape()))
 
     def get_candidates_tofeed(self):
         return np.squeeze(np.array(self.GA_batches), axis=(0,))
@@ -134,4 +133,3 @@ class Fuser(object):
 
 if __name__ == "__main__":
     f = Fuser()
-    f.test_feed()

@@ -1,7 +1,6 @@
 import tensorflow as tf
 from tensorflow.python.ops import tensor_array_ops, control_flow_ops
 
-
 class Generator(object):
     def __init__(self, fuser=None, num_emb=20525, batch_size=1, emb_dim=256, hidden_dim=64,
                  sequence_length=20, start_token=0,
