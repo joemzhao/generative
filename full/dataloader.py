@@ -49,7 +49,8 @@ class full_loader(object):
         self.Q, self.A, self.candidates = cPickle.load(open(out_name, "r"))
 
     def pad_candidates(self):
-        max_len = max([len(can) for can in self.candidates])
+        # max_len = max([len(can) for can in self.candidates])
+        max_len = len(self.A)
         temp = []
         for can in self.candidates:
             can = can + [0] * (max_len-len(can))
