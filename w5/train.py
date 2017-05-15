@@ -21,10 +21,10 @@ buckets=buckets, bucket_option=bucket_option, clean_mode=True)
 vocab_size = len(reader.dict)
 # print vocab_size 20525 vocabulary
 
-hidden_size = 256
-projection_size = 128
-embedding_size = 256
-num_layers = 1
+hidden_size = 128
+projection_size = 64
+embedding_size = 64
+num_layers = 2
 
 #output_size for sftmx layer. we could use project to reduce the size
 output_size = hidden_size

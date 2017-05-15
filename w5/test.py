@@ -6,7 +6,6 @@ import sys
 import json
 
 import beam_predictor
-import naive_predictors
 import helpers
 import data_reader
 import model
@@ -26,10 +25,10 @@ buckets=buckets, bucket_option=bucket_option, clean_mode=True)
 vocab_size = len(reader.dict)
 # print vocab_size 20525 vocabulary
 
-hidden_size = 256
-projection_size = 128
-embedding_size = 256
-num_layers = 1
+hidden_size = 128
+projection_size = 64
+embedding_size = 64
+num_layers = 2
 
 truncated_std = .1
 keep_prob = .95
@@ -95,8 +94,6 @@ if interactive:
         top_value=top_value, top_index=top_index, dec_states=dec_states , top_k=top_k,
         max_seq_len=max_seq_len, sess=sess, probs=probs, signal=None)
 
-        naives = naive_predictors.naive_predictors(probs=probs, enc_inp=enc_inp, dec_states=dec_states, encoder_decoder=encoder_decoder, max_seq_len=max_seq_len, sess=sess, signal=None)
-
         sys.stdout.write("src: ")
         helpers.print_sentence(sequence, reader)
 
@@ -107,19 +104,12 @@ if interactive:
         for item in A_:
             helpers.print_sentence(item, reader)
 
-        sys.stdout.write("res (argmax): ")
-        helpers.print_sentence(naives.arg_max(),reader)
-
-        sys.stdout.write("res (weighted_pick): ")
-        helpers.print_sentence(naives.weighted_pick(),reader)
-
-        print (" ")
 else:
     total_emb = encoder_decoder.get_emb(sess)
     np.save("emb/total_emb.npy", total_emb)
     print "Embedding of vocabulary saved."
     # print total_emb.shape #(20525, 256)
-    candidate_top = 20
+    candidate_top = 10
     argmax_list = []
     weighted_pick_list = []
     beam_search_list = []
@@ -136,17 +126,12 @@ else:
             top_value=top_value, top_index=top_index, dec_states=dec_states , top_k=top_k,
             max_seq_len=max_seq_len, sess=sess, probs=probs, signal=None)
 
-            naives = naive_predictors.naive_predictors(probs=probs, enc_inp=enc_inp, dec_states=dec_states, encoder_decoder=encoder_decoder, max_seq_len=max_seq_len, sess=sess, signal=None)
 
             beam_search_list.append([data[0][0], data[0][1], response])
             for idx, item in enumerate(A_):
                 if idx < candidate_top:
                     beam_search_list.append([data[0][0], data[0][1], item])
 
-            argmax_list.append([data[0][0], data[0][1], naives.arg_max()])
-
-            # helpers.print_sentence(naives.weighted_pick(),reader)
-            weighted_pick_list.append([data[0][0], data[0][1], naives.weighted_pick()])
 
         except Exception:
             print "Finish storing, writing.."
@@ -154,14 +139,6 @@ else:
                 f.write(json.dumps(argmax_list) + "\n")
             f.close()
 
-            with open("candidates/weighted_pick_list.txt", "w") as f:
-                f.write(json.dumps(weighted_pick_list) + "\n")
-            f.close()
-
-            with open("candidates/beam_search_list.txt", "w") as f:
-                for item in beam_search_list:
-                    f.write("%s\n" % item)
-            f.close()
 
             sess.close()
             print "\n session closed"
