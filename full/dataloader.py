@@ -53,7 +53,7 @@ class full_loader(object):
         max_len = len(self.A)
         temp = []
         for can in self.candidates:
-            can = can + [0] * (max_len-len(can))
+            can = can + [20520] * (max_len-len(can))
             temp.append(can)
         self.candidates = temp
 

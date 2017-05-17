@@ -6,24 +6,24 @@ class Fuser(object):
     '''
     An class providing fusing operation and other interfaces with LSTM in seqgan
     '''
-    def __init__(self, batch_size=1, cand_max_len=20, candidate_size=21, vocab_size=20525, emb_dim=256, hidden_dim=64):
+    def __init__(self, g_emb, batch_size=1, cand_max_len=20, candidate_size=21, vocab_size=20526, emb_dim=80, hidden_dim=64):
         self.batch_size = batch_size
         self.candidate_size = candidate_size
         self.vocab_size = vocab_size
         self.emb_dim = emb_dim
         self.hidden_dim = hidden_dim
         self.cand_max_len = cand_max_len
-        self.init_embedding = fu.load_emb()
+        self.g_emb = g_emb
+
         ''' Placehoders. For fuser there is only one placeholder required. The
             place holders of candidates whose embedding to be fused. The initial
             embedding is actually only used once (for each QA pair).
         '''
         self.input_ph = tf.placeholder(tf.int32, [self.batch_size, self.candidate_size, self.cand_max_len], name="input_candidate")
-        self.fuse(self.init_embedding)
+        self.fuse()
 
-    def fuse(self, input_embedding, reuse=False):
-        embedded_input = tf.nn.embedding_lookup(input_embedding, self.input_ph)
-        # convolution
+    def fuse(self, reuse=False):
+        embedded_input = tf.nn.embedding_lookup(self.g_emb, self.input_ph)
         conv_spatials = [2, 2]
         conv_depths = [32, 32]
         archits = zip(conv_spatials, conv_depths)

@@ -3,16 +3,17 @@ from tensorflow.python.ops import tensor_array_ops, control_flow_ops
 import numpy as np
 import tensorflow as tf
 import fuse.trim_fuser as fuser
+import fuse.trim_fuse_utils as fu
 
 class Generator(object):
-    def __init__(self, cand_max_len=20, num_emb=20525, batch_size=1, emb_dim=256, hidden_dim=64,
+    def __init__(self, cand_max_len=20, num_emb=20526, batch_size=1, emb_dim=256, hidden_dim=64,
                  sequence_length=20, start_token=0, learning_rate=0.01):
         self.cand_max_len = cand_max_len
-        self.fuser = fuser.Fuser(cand_max_len=cand_max_len)
         self.num_emb = num_emb
         self.batch_size = batch_size
         self.emb_dim = emb_dim
         self.hidden_dim = hidden_dim
+        self.init_embedding = fu.load_emb()
 
         ''' to be more clear we use fix length of pretraining. For adversari we use cand_max_len'''
         self.sequence_length = cand_max_len
@@ -28,11 +29,12 @@ class Generator(object):
             Loading the embedding can improve performance.
             Results are significant.
             '''
-            self.g_embeddings = tf.Variable(self.fuser.init_embedding)
+            self.g_embeddings = tf.Variable(self.init_embedding)
             # self.g_embeddings = tf.Variable(self.init_matrix([self.num_emb, self.emb_dim]))
             self.g_params.append(self.g_embeddings)
-            self.g_recurrent_unit = self.create_recurrent_unit(self.g_params)  # maps h_tm1 to h_t for generator
-            self.g_output_unit = self.create_output_unit(self.g_params)  # maps h_t to o_t (output token logits)
+            self.g_recurrent_unit = self.create_recurrent_unit(self.g_params)
+            self.g_output_unit = self.create_output_unit(self.g_params)
+            self.fuser = fuser.Fuser(g_emb=self.g_embeddings, cand_max_len=self.cand_max_len, emb_dim=80)
 
         '''
         collect paramters from the fuse.
@@ -56,7 +58,17 @@ class Generator(object):
 
         # Initial states
         ''' Use the fused feature as initial state '''
-        self.h0 = self.fuser.final_features
+        self.begin_ad = tf.placeholder(tf.bool, name="adversarial_flag")
+        def f1():
+            return self.fuser.final_features
+        def f2():
+            return tf.zeros([self.batch_size, self.hidden_dim])
+
+        self.h0 = tf.cond(self.begin_ad,
+                    f1, f2)
+
+        # self.h0 = tf.zeros([self.batch_size, self.hidden_dim])
+        # self.h0 = self.fuser.final_features
         self.h0 = tf.stack([self.h0, self.h0])
 
         gen_o = tensor_array_ops.TensorArray(dtype=tf.float32, size=self.sequence_length,
@@ -145,16 +157,17 @@ class Generator(object):
 
     def generate(self, sess, candidates):
         outputs = sess.run(self.gen_x,
-                    feed_dict = {self.fuser.input_ph: np.expand_dims(np.asarray(candidates), axis=0)})
+                    feed_dict = {self.fuser.input_ph: np.expand_dims(np.asarray(candidates), axis=0),
+                                 self.begin_ad: False
+                                 })
         return outputs
 
     def pretrain_step(self, sess, x, candidates):
-        self.fuser.fuse(self.g_embeddings.eval(session=sess), reuse=True)
         outputs = sess.run([self.pretrain_updates, self.pretrain_loss],
                             feed_dict = {
-                                        self.x: x,
-                                        self.fuser.input_ph: np.expand_dims(np.asarray(candidates), axis=0)
-                                        }
+                        self.x: x,
+                        self.fuser.input_ph: np.expand_dims(np.asarray(candidates), axis=0),
+                        self.begin_ad: False}
                         )
 
         return outputs
