@@ -18,7 +18,6 @@ class Gen_Data_loader(object):
             else:
                 temp.append(item)
         f.close()
-        print len(whole)
 
         self.num_batch = int(len(self.token_stream) / self.batch_size)
         self.token_stream = self.token_stream[:self.num_batch * self.batch_size]
@@ -99,5 +98,6 @@ class Dis_dataloader(object):
 if __name__ == "__main__":
     real_path = "./datasets/bbt_concate_full.txt"
     nega_path = "./save/generated.txt"
-    g = Gen_Data_loader(128)
-    g.create_batches(real_path, 20)
+
+    d_ld = Dis_dataloader(1)
+    d_ld.load_train_data(real_path, nega_path, 20)

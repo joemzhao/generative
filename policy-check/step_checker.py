@@ -15,9 +15,9 @@ import helpers as hp
 EMB_DIM = 64
 HID_DIM = 64
 START_TOKEN = 0
-PRE_EPOCH_NUM = 0
+PRE_EPOCH_NUM = 50
 SEED = 1234
-BATCH_SIZE = 2
+BATCH_SIZE = 128
 SEQ_LENGTH = 20
 VOCAB_SIZE = 20525
 LR = 0.01
@@ -54,59 +54,67 @@ def main():
     saver = tf.train.Saver()
 
     totoal_words = G_dataloader.create_batches(real_data_path, SEQ_LENGTH)
-    totoal_words = BATCH_SIZE * 200
+    totoal_words = BATCH_SIZE * 300
 
-    print "Pretraining the generator ... "
-    for epoch in xrange(PRE_EPOCH_NUM):
-        loss = hp.pre_train_epoch(sess, generator, G_dataloader)
-        if epoch % 5 == 0:
-            print "This is generator pretrain epoch %d: " % epoch
-            print loss
-            pretrain_loss.append(loss)
-    for item in pretrain_loss:
-        g_pretrain_loss_save.write(str(item)+",")
-    g_pretrain_loss_save.close()
-    print "====== Finish pretraining of generator ======"
+    if not os.listdir("./pretrained/"):
+        print "There is not pretrained model saved. Start a new pretraining!"
+        print "Pretraining the generator ... "
+        for epoch in xrange(PRE_EPOCH_NUM):
+            loss = hp.pre_train_epoch(sess, generator, G_dataloader)
+            if epoch % 5 == 0:
+                print "This is generator pretrain epoch %d: " % epoch
+                print loss
+                pretrain_loss.append(loss)
+        for item in pretrain_loss:
+            g_pretrain_loss_save.write(str(item)+",")
+        g_pretrain_loss_save.close()
+        print "====== Finish pretraining of generator ======"
 
-    print "Pretraining the discriminator ... "
-    # print totoal_words
-    hp.generate_samples(sess, generator, BATCH_SIZE, totoal_words, nega_data_path)
-    d_batch = D_dataloader.load_train_data(real_data_path, nega_data_path, SEQ_LENGTH)
+        print "Pretraining the discriminator ... "
+        # print totoal_words
+        hp.generate_samples(sess, generator, BATCH_SIZE, totoal_words, nega_data_path)
+        d_batch = D_dataloader.load_train_data(real_data_path, nega_data_path, SEQ_LENGTH)
 
-    d_batch_losses = []
-    for epoch in range(2):
-        D_dataloader.reset_pointer()
-        for batch in xrange(D_dataloader.num_batch):
-            x_batch, y_batch = D_dataloader.next_batch()
-            feed = {
-                    discriminator.input_x: x_batch,
-                    discriminator.input_y: y_batch,
-                    discriminator.dropout_keep_prob: dis_dropout_keep_prob
-                }
-            _, d_pre_loss = sess.run([discriminator.train_op, discriminator.loss], feed)
-            d_batch_losses.append(d_pre_loss)
-            if batch % 200 == 0:
-                print "discriminator pretrain batch %d/%d: " % (batch, d_batch)
-        pretrain_loss_d.append(np.mean(d_batch_losses))
         d_batch_losses = []
+        for epoch in range(30):
+            D_dataloader.reset_pointer()
+            for batch in xrange(D_dataloader.num_batch):
+                x_batch, y_batch = D_dataloader.next_batch()
+                feed = {
+                        discriminator.input_x: x_batch,
+                        discriminator.input_y: y_batch,
+                        discriminator.dropout_keep_prob: dis_dropout_keep_prob
+                    }
+                _, d_pre_loss = sess.run([discriminator.train_op, discriminator.loss], feed)
+                d_batch_losses.append(d_pre_loss)
+                if batch % 200 == 0:
+                    print "discriminator pretrain batch %d/%d: " % (batch, d_batch)
+            pretrain_loss_d.append(np.mean(d_batch_losses))
+            d_batch_losses = []
 
-    for item in pretrain_loss_d:
-        d_pretrain_loss_save.write(str(item)+",")
-    d_pretrain_loss_save.close()
+        for item in pretrain_loss_d:
+            d_pretrain_loss_save.write(str(item)+",")
+        d_pretrain_loss_save.close()
 
-    cwd = os.getcwd()
-    saver.save(sess, cwd+pretrain_save+"_%d_model.ckpt"%epoch)
-    print "Pretraining model saved!"
+        cwd = os.getcwd()
+        saver.save(sess, cwd+pretrain_save+"_%d_model.ckpt"%epoch)
+        print "Pretraining model saved!"
+
+    else:
+        cwd = os.getcwd()
+        load_name = "/pretrained/"+"50"
+        saver.restore(sess, cwd+pretrain_save+"_29_model.ckpt")
+        print "model restored!"
 
     print "///// begin of adversarial training /////"
     adversarial_g_loss = []
     adversarial_d_loss = []
     rollout = ROLLOUT(generator, 0.8)
-    for iteration in xrange(50):
+    for iteration in xrange(30):
         if iteration % 5 == 0:
             print "This is epoch %d of adversarial training" % iteration
 
-        for g_it in xrange(5):
+        for g_it in xrange(1):
             samples = generator.generate(sess)
             rewards = rollout.get_reward(sess, samples, 16, discriminator)
             feed = {generator.x: samples, generator.rewards: rewards}
@@ -129,6 +137,7 @@ def main():
                     }
                 _, d_pre_loss = sess.run([discriminator.train_op, discriminator.loss], feed)
         adversarial_d_loss.append(d_pre_loss)
+        
         print "-----  GAN summary -----"
         print "avg g loss %f "%np.mean(adversarial_g_loss)
         print "avg d loss %f "%np.mean(adversarial_d_loss)
