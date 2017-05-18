@@ -6,7 +6,7 @@ import fuse.trim_fuser as fuser
 import fuse.trim_fuse_utils as fu
 
 class Generator(object):
-    def __init__(self, cand_max_len=20, num_emb=20526, batch_size=1, emb_dim=256, hidden_dim=64,
+    def __init__(self, cand_max_len=20, num_emb=20524, batch_size=1, emb_dim=256, hidden_dim=64,
                  sequence_length=20, start_token=0, learning_rate=0.01):
         self.cand_max_len = cand_max_len
         self.num_emb = num_emb
@@ -34,7 +34,7 @@ class Generator(object):
             self.g_params.append(self.g_embeddings)
             self.g_recurrent_unit = self.create_recurrent_unit(self.g_params)
             self.g_output_unit = self.create_output_unit(self.g_params)
-            self.fuser = fuser.Fuser(g_emb=self.g_embeddings, cand_max_len=self.cand_max_len, emb_dim=80)
+            self.fuser = fuser.Fuser(g_emb=self.g_embeddings, cand_max_len=self.cand_max_len, emb_dim=256)
 
         '''
         collect paramters from the fuse.
@@ -158,7 +158,7 @@ class Generator(object):
     def generate(self, sess, candidates):
         outputs = sess.run(self.gen_x,
                     feed_dict = {self.fuser.input_ph: np.expand_dims(np.asarray(candidates), axis=0),
-                                 self.begin_ad: False
+                                 self.begin_ad: True
                                  })
         return outputs
 
