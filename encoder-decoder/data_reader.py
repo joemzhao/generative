@@ -4,7 +4,7 @@ import json
 
 class reader(object):
     def __init__(self, file_name, batch_size, buckets, bucket_option,
-                                               signal=False, clean_mode=False):
+                                               signal=False, clean_mode=True):
         self.epoch = 1
         self.batch_size = batch_size
         self.file_name = file_name

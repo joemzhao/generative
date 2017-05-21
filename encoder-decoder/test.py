@@ -126,12 +126,10 @@ else:
             top_value=top_value, top_index=top_index, dec_states=dec_states , top_k=top_k,
             max_seq_len=max_seq_len, sess=sess, probs=probs, signal=None)
 
-
             beam_search_list.append([data[0][0], data[0][1], response])
             for idx, item in enumerate(A_):
                 if idx < candidate_top:
                     beam_search_list.append([data[0][0], data[0][1], item])
-
 
         except Exception:
             print "Finish storing, writing.."

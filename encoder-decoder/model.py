@@ -4,8 +4,9 @@ import os
 import json
 
 class seq2seq(object):
-    def __init__(self, batch_size, vocab_size, embedding_size, num_layers, keep_prob,
-                             output_size, truncated_std, hidden_size, projection_size):
+    def __init__(self, output_size, hidden_size, projection_size,
+                 embedding_size, batch_size=128, vocab_size=20525,
+                 num_layers=1, keep_prob=0.95, truncated_std=0.1):
         self.batch_size = batch_size
         self.vocab_size = vocab_size
         self.embedding_size = embedding_size
@@ -23,10 +24,8 @@ class seq2seq(object):
         self.dec_inputs = tf.placeholder(tf.int32, shape=(None, self.batch_size), name="dec_inputs")
         self.emb_weights = tf.Variable(tf.truncated_normal([self.vocab_size, self.embedding_size], stddev=self.truncated_std), name="emb_weights")
 
-        self.enc_inputs_emb = tf.nn.embedding_lookup(self.emb_weights, self.enc_inputs,
-                                                         name="enc_inputs_emb" )
-        self.dec_inputs_emb = tf.nn.embedding_lookup(self.emb_weights, self.dec_inputs,
-                                                         name="dec_inputs_emb")
+        self.enc_inputs_emb = tf.nn.embedding_lookup(self.emb_weights, self.enc_inputs, name="enc_inputs_emb" )
+        self.dec_inputs_emb = tf.nn.embedding_lookup(self.emb_weights, self.dec_inputs, name="dec_inputs_emb")
         self.initialize_input_layers()
 
     def initialize_input_layers(self):
@@ -44,7 +43,6 @@ class seq2seq(object):
 
         self.cell_list.append(single_cell)
         self.cell = tf.contrib.rnn.MultiRNNCell(cells=self.cell_list, state_is_tuple=True)
-        # self.cell = tf.contrib.rnn.MultiRNNCell(cells=self.cell_list, state_is_tuple=True)
 
     def _seq2seq(self):
         _, self.enc_states = tf.nn.dynamic_rnn(
