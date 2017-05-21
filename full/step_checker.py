@@ -16,7 +16,7 @@ import fuse.trim_fuser as fuser
 EMB_DIM = 256
 HID_DIM = 64
 START_TOKEN = 0
-PRE_EPOCH_NUM = 50
+PRE_EPOCH_NUM = 1
 SEED = 1234
 BATCH_SIZE = 1
 VOCAB_SIZE = 20524
@@ -24,8 +24,8 @@ LR = 0.01
 
 dis_embedding_dim = 64
 dis_filter_sizes = [1, 2]
-dis_num_filters = [100, 200]
-dis_dropout_keep_prob = 0.95
+dis_num_filters = [50, 100]
+dis_dropout_keep_prob = 0.85
 dis_l2_reg_lambda = 0.1
 dis_batch_size = 64
 
@@ -73,19 +73,19 @@ def main():
         print "Pretraining the discriminator ... "
         nega_A = hp.generate_samples(sess, generator, candidates, out_file)[0]
         feed = hp.get_dict_D(discriminator, nega_A, real_A)
-        for _ in xrange(100):
-            _, pre_d_loss = sess.run([discriminator.train_op, discriminator.loss], feed_dict=feed)
-            print pre_d_loss
-        print "====== Finish pretraining of discriminator ======"
 
         cwd = os.getcwd()
         saver.save(sess, cwd+pretrain_save)
-        print "Pretraining model saved!"
+        print "Pretraining G model saved!"
     else:
         cwd = os.getcwd()
         saver.restore(sess, cwd+pretrain_save)
-        print "Pretrained model restored!"
+        print "Pretrained G model restored!"
 
+    for _ in xrange(50):
+        _, pre_d_loss = sess.run([discriminator.train_op, discriminator.loss], feed_dict=feed)
+        print pre_d_loss
+    print "====== Finish pretraining of discriminator ======"
 
     print "///// begin of adversarial training /////"
     rollout = ROLLOUT(generator, 0.8)
