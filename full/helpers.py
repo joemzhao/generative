@@ -13,7 +13,8 @@ def generate_samples(sess, trainable, candidates, output_file):
 
 def pre_train_epoch(sess, trainable, data_loader, candidates):
     '''
-    Since this is for pretraining, for placeholder in the fusing operator (input candidates) we will just use the first set of candidates.
+    Since this is for pretraining, for placeholder in the fusing operator
+    aka input candidates we will just feed zeros.
     '''
     supervised_g_loss = []
     data_loader.reset_pointer()
@@ -24,10 +25,8 @@ def pre_train_epoch(sess, trainable, data_loader, candidates):
             print "Training loss : ", np.mean(supervised_g_loss)
 
         next_bc = data_loader.next_batch()
-
         ''' [pretrain_update, pretrain_loss] '''
-        _, g_loss = trainable.pretrain_step(sess, next_bc, candidates)
-
+        _, g_loss = trainable.pretrain_step(sess, next_bc, np.zeros(np.array(candidates).shape))
         supervised_g_loss.append(g_loss)
 
     return np.mean(supervised_g_loss)
@@ -62,7 +61,6 @@ def get_dict_D(D, nega, posi):
                  D.dropout_keep_prob: 0.9}
 
     return feed_dict
-
 
 def translator(q, a, a_):
     dict_path = "./datasets/dict.json"

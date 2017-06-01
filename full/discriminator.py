@@ -126,7 +126,7 @@ class Discriminator(object):
             # CalculateMean cross-entropy loss
             with tf.name_scope("loss"):
                 self.losses = tf.nn.softmax_cross_entropy_with_logits(logits=self.scores, labels=self.input_y)
-                self.loss = tf.reduce_mean(self.losses) #+ l2_reg_lambda * l2_loss
+                self.loss = tf.reduce_mean(self.losses) + l2_reg_lambda * l2_loss
 
         self.params = [param for param in tf.trainable_variables() if 'discriminator' in param.name]
         d_optimizer = tf.train.AdamOptimizer(1e-4)

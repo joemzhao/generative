@@ -44,8 +44,8 @@ class g_data_loader(object):
 
 class full_loader(object):
     def __init__(self):
-        idx = 0
-        out_name = "./seperator/seps/pair_"+str(idx)+".p"
+        self.idx = 3
+        out_name = "./seperator/seps/pair_"+str(self.idx)+".p"
         self.Q, self.A, self.candidates = cPickle.load(open(out_name, "r"))
 
     def pad_candidates(self):
@@ -57,8 +57,12 @@ class full_loader(object):
             temp.append(can)
         self.candidates = temp
 
-        return self.Q, self.A, self.candidates, max_len
+        return self.Q, self.A, self.candidates, max_len, self.idx
 
 if __name__ == "__main__":
     floader = full_loader()
-    floader.pad_candidates()
+    q, a, candidates, maxlen = floader.pad_candidates()
+    print q
+    print a
+    print np.array(candidates)
+    print np.array(candidates).shape

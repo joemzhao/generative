@@ -16,7 +16,7 @@ import fuse.trim_fuser as fuser
 EMB_DIM = 256
 HID_DIM = 64
 START_TOKEN = 0
-PRE_EPOCH_NUM = 1
+PRE_EPOCH_NUM = 10
 SEED = 1234
 BATCH_SIZE = 1
 VOCAB_SIZE = 20524
@@ -31,17 +31,16 @@ dis_batch_size = 64
 
 data_path = "./datasets/bbt_concate_full.txt"
 out_file = "./save/generated.txt"
-
 pretrain_save = "/pretrained/"+str(PRE_EPOCH_NUM)+"model.ckpt"
-
-pretrain_loss = []
 pretrain_loss_save = open("./pretrained_log/pretrain_loss_save.txt", "w")
+pretrain_loss = []
+
 def main():
     random.seed(SEED)
     np.random.seed(SEED)
 
     full_loader = F_ld()
-    Q, real_A, candidates, cand_max_len = full_loader.pad_candidates()
+    Q, real_A, candidates, cand_max_len, QA_IDX = full_loader.pad_candidates()
 
     generator = G(cand_max_len=cand_max_len, emb_dim=EMB_DIM)
     discriminator = D(sequence_length=len(real_A), filter_sizes=dis_filter_sizes, num_filters=dis_num_filters)
@@ -52,7 +51,6 @@ def main():
     sess = tf.Session()
     sess.run(tf.global_variables_initializer())
     saver = tf.train.Saver()
-    # writer =  tf.summary.FileWriter('./graph_log/', sess.graph)
 
     if len(os.listdir("./pretrained/")) <= 2:
         print "Pretraining the generator ... "
@@ -87,42 +85,59 @@ def main():
         print pre_d_loss
     print "====== Finish pretraining of discriminator ======"
 
+    adversarial_g_loss_records = "./adversarial_log/"+str(QA_IDX)+"_"+str(PRE_EPOCH_NUM)+"_generator_fuse.txt"
+    adversarial_d_loss_records = "./adversarial_log/"+str(QA_IDX)+"_"+str(PRE_EPOCH_NUM)+"_discriminator_fuse.txt"
+    adversarial_reward_records = "./adversarial_log/"+str(QA_IDX)+"_"+str(PRE_EPOCH_NUM)+"_rewards_fuse.txt"
+
+    rewards_records = []
+    adversarial_g_loss = []
+    adversarial_d_loss = []
     print "///// begin of adversarial training /////"
     rollout = ROLLOUT(generator, 0.8)
     for _ in xrange(30):
         for g_it in xrange(5):
             samples = generator.generate(sess, candidates)
             rewards = rollout.get_reward(sess, samples, cand_max_len-1, discriminator, candidates)
-
             feed = { generator.x: samples,
                      generator.rewards: rewards,
                      generator.begin_ad: True,
                      rollout.lstm.fuser.input_ph: np.expand_dims(np.asarray(candidates), axis=0)}
             _ = sess.run(generator.g_updates, feed_dict=feed)
         print rewards
+        rewards_records.append(np.mean(rewards))
         rollout.update_params()
 
-        for d_it in xrange(5):
+        for d_it in xrange(1):
             nega_A = hp.generate_samples(sess, generator, candidates, out_file)[0]
             feed = hp.get_dict_D(discriminator, nega_A, real_A)
             _, pre_d_loss, d_pred, d_real, d_losses = sess.run([discriminator.train_op, discriminator.loss, discriminator.predictions, discriminator.input_y, discriminator.losses], feed_dict=feed)
-            # print "D REAL LABEL"
-            # print d_real
-            # print "D PRED LABEL"
-            # print d_pred
-            # print "D LOSSES"
-            # print d_losses
 
         print "GAN d loss"
         print pre_d_loss
+        adversarial_d_loss.append(pre_d_loss)
 
         print "------ round summary --------"
         g_gan_loss = hp.loss_checker(sess, generator, pre_G_dataloader, candidates)
+        adversarial_g_loss.append(g_gan_loss)
         print "Results of GAN:"
         print g_gan_loss
         samples = generator.generate(sess, candidates)
         hp.translator(Q, real_A, samples[0])
         print "-----------------------------"
+
+    ''' write out the results '''
+    with open(adversarial_g_loss_records, "w") as f:
+        for item in adversarial_g_loss:
+            f.write(str(item)+", ")
+    f.close()
+    with open(adversarial_d_loss_records, "w") as f:
+        for item in adversarial_d_loss:
+            f.write(str(item)+", ")
+    f.close()
+    with open(adversarial_reward_records, "w") as f:
+        for item in rewards_records:
+            f.write(str(item)+", ")
+    f.close()
 
 if __name__ == "__main__":
     main()
