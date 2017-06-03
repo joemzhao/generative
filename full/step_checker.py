@@ -2,6 +2,7 @@ from trim_generator import Generator as G
 from discriminator import Discriminator as D
 from dataloader import g_data_loader as G_ld
 from dataloader import full_loader as F_ld
+from dataloader import trimed_g_loader as t_g_loader
 from rollout import ROLLOUT
 
 import numpy as np
@@ -16,7 +17,7 @@ import fuse.trim_fuser as fuser
 EMB_DIM = 256
 HID_DIM = 64
 START_TOKEN = 0
-PRE_EPOCH_NUM = 10
+PRE_EPOCH_NUM = 50
 SEED = 1234
 BATCH_SIZE = 1
 VOCAB_SIZE = 20524
@@ -26,10 +27,9 @@ dis_embedding_dim = 64
 dis_filter_sizes = [1, 2]
 dis_num_filters = [50, 100]
 dis_dropout_keep_prob = 0.85
-dis_l2_reg_lambda = 0.1
+dis_l2_reg_lambda = 0.05
 dis_batch_size = 64
 
-data_path = "./datasets/bbt_concate_full.txt"
 out_file = "./save/generated.txt"
 pretrain_save = "/pretrained/"+str(PRE_EPOCH_NUM)+"model.ckpt"
 pretrain_loss_save = open("./pretrained_log/pretrain_loss_save.txt", "w")
@@ -43,10 +43,8 @@ def main():
     Q, real_A, candidates, cand_max_len, QA_IDX = full_loader.pad_candidates()
 
     generator = G(cand_max_len=cand_max_len, emb_dim=EMB_DIM)
-    discriminator = D(sequence_length=len(real_A), filter_sizes=dis_filter_sizes, num_filters=dis_num_filters)
-
-    pre_G_dataloader = G_ld(BATCH_SIZE, cand_max_len, data_path)
-    pre_G_dataloader.create_batches()
+    discriminator = D(len(real_A), dis_filter_sizes, dis_num_filters)
+    pre_G_dataloader = t_g_loader(BATCH_SIZE, cand_max_len, candidates)
 
     sess = tf.Session()
     sess.run(tf.global_variables_initializer())
@@ -55,7 +53,7 @@ def main():
     if len(os.listdir("./pretrained/")) <= 2:
         print "Pretraining the generator ... "
         for epoch in xrange(PRE_EPOCH_NUM):
-            loss = hp.pre_train_epoch(sess, generator, pre_G_dataloader, candidates)
+            loss = hp.pre_train_epoch(sess, generator, pre_G_dataloader)
             if epoch % 1 == 0:
                 cwd = os.getcwd()
                 print "This is generator pretrain epoch %d: " % epoch
@@ -80,14 +78,14 @@ def main():
         saver.restore(sess, cwd+pretrain_save)
         print "Pretrained G model restored!"
 
-    for _ in xrange(50):
+    for _ in xrange(20):
         _, pre_d_loss = sess.run([discriminator.train_op, discriminator.loss], feed_dict=feed)
         print pre_d_loss
     print "====== Finish pretraining of discriminator ======"
 
     adversarial_g_loss_records = "./adversarial_log/"+str(QA_IDX)+"_"+str(PRE_EPOCH_NUM)+"_generator_fuse.txt"
     adversarial_d_loss_records = "./adversarial_log/"+str(QA_IDX)+"_"+str(PRE_EPOCH_NUM)+"_discriminator_fuse.txt"
-    adversarial_reward_records = "./adversarial_log/"+str(QA_IDX)+"_"+str(PRE_EPOCH_NUM)+"_rewards_fuse.txt"
+    adversarial_reward_records = "./adversarial_log/"+str(QA_IDX)+"_"+str(PRE_EPOCH_NUM)+"_rewards.txt"
 
     rewards_records = []
     adversarial_g_loss = []

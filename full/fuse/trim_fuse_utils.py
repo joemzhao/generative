@@ -39,8 +39,8 @@ def write_pickle(data, path):
         pickle.dump(data, handle)
 
 def load_emb():
-    # emb = "/Users/mzhao/Desktop/nnMisc/full/fuse/data/can_emb/emb/total_emb_80.npy"
-    emb = "/root/mzhao/full/fuse/data/can_emb/emb/total_emb_80.npy"
+    # emb = "/Users/mzhao/Desktop/nnMisc/full/fuse/data/can_emb/emb/total_emb_256.npy"
+    emb = "/root/mzhao/full/fuse/data/can_emb/emb/total_emb_256.npy"
     return np.load(emb)
 
 def load_data(force):

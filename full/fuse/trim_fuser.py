@@ -19,7 +19,8 @@ class Fuser(object):
             place holders of candidates whose embedding to be fused. The initial
             embedding is actually only used once (for each QA pair).
         '''
-        self.input_ph = tf.placeholder(tf.int32, [self.batch_size, self.candidate_size, self.cand_max_len], name="input_candidate")
+        self.input_ph = tf.placeholder(tf.int32,
+                        [self.batch_size, self.candidate_size, self.cand_max_len], name="input_candidate")
         self.fuse()
 
     def fuse(self, reuse=False):

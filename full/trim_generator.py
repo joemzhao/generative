@@ -165,8 +165,8 @@ class Generator(object):
     def pretrain_step(self, sess, x, candidates):
         outputs = sess.run([self.pretrain_updates, self.pretrain_loss],
                             feed_dict = {
-                        self.x: x,
-                        self.fuser.input_ph: np.expand_dims(np.asarray(candidates), axis=0),
+                        self.x: np.expand_dims(x, axis=0),
+                        self.fuser.input_ph: np.expand_dims(candidates, axis=0),
                         self.begin_ad: False}
                         )
 

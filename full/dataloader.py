@@ -3,6 +3,25 @@ import json
 import simplejson
 import cPickle
 
+class trimed_g_loader(object):
+    def __init__(self, batch_size, largest_len, candidates_array):
+        self.batch_size = batch_size
+        self.largest_len = largest_len
+        self.num_batch = 21
+        self.candidates = np.array(candidates_array)
+        self.pointer = 0
+
+    def this_batch(self):
+        return self.candidates[self.pointer-1]
+
+    def next_batch(self):
+        ret = self.candidates[self.pointer]
+        self.pointer = (self.pointer + 1) % 21
+        return ret
+
+    def reset_pointer(self):
+        self.pointer = 0
+
 class g_data_loader(object):
     '''
     A dataloader for generator. The inputs are sentences and will be parsed to
@@ -44,7 +63,7 @@ class g_data_loader(object):
 
 class full_loader(object):
     def __init__(self):
-        self.idx = 3
+        self.idx = 33
         out_name = "./seperator/seps/pair_"+str(self.idx)+".p"
         self.Q, self.A, self.candidates = cPickle.load(open(out_name, "r"))
 
@@ -56,7 +75,6 @@ class full_loader(object):
             can = can + [20520] * (max_len-len(can))
             temp.append(can)
         self.candidates = temp
-
         return self.Q, self.A, self.candidates, max_len, self.idx
 
 if __name__ == "__main__":
