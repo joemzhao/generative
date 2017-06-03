@@ -17,15 +17,15 @@ import fuse.trim_fuser as fuser
 EMB_DIM = 256
 HID_DIM = 64
 START_TOKEN = 0
-PRE_EPOCH_NUM = 50
+PRE_EPOCH_NUM = 80
 SEED = 1234
 BATCH_SIZE = 1
 VOCAB_SIZE = 20524
 LR = 0.01
 
 dis_embedding_dim = 64
-dis_filter_sizes = [1, 2]
-dis_num_filters = [50, 100]
+dis_filter_sizes = [1, 2, 3]
+dis_num_filters = [10, 50, 100]
 dis_dropout_keep_prob = 0.85
 dis_l2_reg_lambda = 0.05
 dis_batch_size = 64
@@ -48,7 +48,7 @@ def main():
 
     sess = tf.Session()
     sess.run(tf.global_variables_initializer())
-    saver = tf.train.Saver()
+    # saver = tf.train.Saver()
 
     if len(os.listdir("./pretrained/")) <= 2:
         print "Pretraining the generator ... "
@@ -71,14 +71,14 @@ def main():
         feed = hp.get_dict_D(discriminator, nega_A, real_A)
 
         cwd = os.getcwd()
-        saver.save(sess, cwd+pretrain_save)
-        print "Pretraining G model saved!"
+        # saver.save(sess, cwd+pretrain_save)
+        # print "Pretraining G model saved!"
     else:
         cwd = os.getcwd()
-        saver.restore(sess, cwd+pretrain_save)
-        print "Pretrained G model restored!"
+        # saver.restore(sess, cwd+pretrain_save)
+        # print "Pretrained G model restored!"
 
-    for _ in xrange(20):
+    for _ in xrange(70):
         _, pre_d_loss = sess.run([discriminator.train_op, discriminator.loss], feed_dict=feed)
         print pre_d_loss
     print "====== Finish pretraining of discriminator ======"
@@ -93,7 +93,7 @@ def main():
     print "///// begin of adversarial training /////"
     rollout = ROLLOUT(generator, 0.8)
     for _ in xrange(30):
-        for g_it in xrange(5):
+        for g_it in xrange(3):
             samples = generator.generate(sess, candidates)
             rewards = rollout.get_reward(sess, samples, cand_max_len-1, discriminator, candidates)
             feed = { generator.x: samples,
@@ -101,8 +101,16 @@ def main():
                      generator.begin_ad: True,
                      rollout.lstm.fuser.input_ph: np.expand_dims(np.asarray(candidates), axis=0)}
             _ = sess.run(generator.g_updates, feed_dict=feed)
+
+            ''' begin teacher forcing '''
+            rewards_records.append(np.mean(rewards))
+            rewards_ = np.ones(rewards.shape)
+            feed_ = { generator.x: real_A,
+                      generator.rewards: rewards_,
+                      generator.begin_ad: True,
+                      rollout.lstm.fuser.input_ph: np.expand_dims(np.asarray(candidates), axis=0)}
+            _ = sess.run(generator.g_updates, feed_dict=feed)
         print rewards
-        rewards_records.append(np.mean(rewards))
         rollout.update_params()
 
         for d_it in xrange(1):
